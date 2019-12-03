@@ -1,0 +1,7 @@
+apiVersion: nsm.networkservicemesh.io/v1alpha1
+kind: NSM
+metadata:
+  name: example-nsm
+spec:
+  # Add fields here
+  size: 3
