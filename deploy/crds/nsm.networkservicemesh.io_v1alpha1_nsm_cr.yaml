@@ -1,7 +1,16 @@
 apiVersion: nsm.networkservicemesh.io/v1alpha1
 kind: NSM
 metadata:
-  name: example-nsm
+  name: nsm
+  namespace: default
 spec:
   # Add fields here
-  size: 3
+  webhookName: nsm-admission-webhook
+  webhookSecretName: nsm-admission-webhook-certs
+  replicas: 1
+  registry: docker.io
+  org: networkservicemesh
+  tag: master
+  pullPolicy: IfNotPresent
+  forwardingPlaneName: vpp
+  forwardingPlaneImage: vppagent-forwarder

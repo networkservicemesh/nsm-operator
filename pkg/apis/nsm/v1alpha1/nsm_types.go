@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -13,6 +14,33 @@ type NSMSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+
+	// Image Repo inputs
+	// Container registry from where to pull the images
+	Registry string `json:"registry"`
+	// Image Owner org
+	Org string `json:"org"`
+	// Image build tag
+	Tag string `json:"tag"`
+	// Image pull policy
+	PullPolicy corev1.PullPolicy `json:"pullPolicy"`
+
+	// Admission Webhook inputs
+	// Webhook instance name
+	WebhookName string `json:"webhookName"`
+	// Webhook secret name
+	WebhookSecretName string `json:"webhookSecretName"`
+	// Desired number of admission webhooks to deploy
+	Replicas int32 `json:"replicas"`
+
+	// Forwarding plane inputs
+	// Forwarding plane for NSM
+	ForwardingPlaneName  string `json:"forwardingPlaneName"`
+	ForwardingPlaneImage string `json:"forwardingPlaneImage"`
+
+	// TODO: ForwardingPlaneConfig
+	// TODO: Spire enabling option
+	// TODO: JaegerTracing option
 }
 
 // NSMStatus defines the observed state of NSM

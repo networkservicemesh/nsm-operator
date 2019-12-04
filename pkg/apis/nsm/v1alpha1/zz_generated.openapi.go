@@ -67,6 +67,71 @@ func schema_pkg_apis_nsm_v1alpha1_NSMSpec(ref common.ReferenceCallback) common.O
 			SchemaProps: spec.SchemaProps{
 				Description: "NSMSpec defines the desired state of NSM",
 				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"registry": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image Repo inputs Container registry from where to pull the images",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"org": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image Owner org",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"tag": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image build tag",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"pullPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image pull policy",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"webhookName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Admission Webhook inputs Webhook instance name",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"webhookSecretName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Webhook secret name",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"replicas": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Desired number of admission webhooks to deploy",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"forwardingPlaneName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Forwarding plane inputs Forwarding plane for NSM",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"forwardingPlaneImage": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"registry", "org", "tag", "pullPolicy", "webhookName", "webhookSecretName", "replicas", "forwardingPlaneName", "forwardingPlaneImage"},
 			},
 		},
 	}
