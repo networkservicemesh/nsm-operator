@@ -5,7 +5,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
+	intstr "k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -19,8 +19,9 @@ func (r *ReconcileNSM) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deploy
 
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "nsm-admission-webhook",
+			Name:      webhookName,
 			Namespace: nsm.Namespace,
+			Labels:    labelsForNSMAdmissionWebhook(nsm.Name),
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
@@ -33,8 +34,7 @@ func (r *ReconcileNSM) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deploy
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-
-						Name:            nsm.Spec.WebhookName,
+						Name:            webhookName,
 						Image:           registry + "/" + org + "/admission-webhook:" + tag,
 						ImagePullPolicy: webhookPullPolicy,
 						Env: []corev1.EnvVar{
@@ -49,24 +49,33 @@ func (r *ReconcileNSM) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deploy
 								ReadOnly:  true},
 						},
 
-						// 	LivenessProbe: *v1.Probe{
-						// 		Handler:             HttpGetAvction{Path: "/liveness", Port: "5555"},
-						// 		InitialDelaySeconds: 10,
-						// 		PeriodSeconds:       3,
-						// 		TimeoutSeconds:      3},
+						LivenessProbe: &corev1.Probe{
+							Handler: corev1.Handler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Path: "/liveness",
+									Port: intstr.FromInt(probePort),
+								},
+							},
+							InitialDelaySeconds: probeInitialDelay,
+							PeriodSeconds:       probePeriod,
+							TimeoutSeconds:      probeTimeout},
 
-						// 	ReadinessProbe: *v1.Probe{
-						// 		{Handler: HttpGetAction{Path: "/readiness", Port: "5555"},
-						// 			InitialDelaySeconds: 10,
-						// 			PeriodSeconds:       3,
-						// 			TimeoutSeconds:      3}},
-						// }},
+						ReadinessProbe: &corev1.Probe{
+							Handler: corev1.Handler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Path: "/readiness",
+									Port: intstr.FromInt(probePort),
+								},
+							},
+							InitialDelaySeconds: probeInitialDelay,
+							PeriodSeconds:       probePeriod,
+							TimeoutSeconds:      probeTimeout},
 					}},
 					Volumes: []corev1.Volume{{
 						Name: "webhook-certs",
 						VolumeSource: corev1.VolumeSource{
 							Secret: &corev1.SecretVolumeSource{
-								SecretName: nsm.Spec.WebhookSecretName,
+								SecretName: webhookSecretName,
 							},
 						},
 					},
@@ -78,8 +87,4 @@ func (r *ReconcileNSM) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deploy
 	// Set Memcached instance as the owner and controller
 	controllerutil.SetControllerReference(nsm, deploy, r.scheme)
 	return deploy
-}
-
-func labelsForNSMAdmissionWebhook(name string) map[string]string {
-	return map[string]string{"app": "nsm-admission-webhook", "nsm-admission-webhook-cr": name}
 }

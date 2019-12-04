@@ -47,17 +47,12 @@ spec:
                 the images
               type: string
             replicas:
-              description: Desired number of admission webhooks to deploy
+              description: Admission Webhook inputs Desired number of admission webhooks
+                to deploy
               format: int32
               type: integer
             tag:
               description: Image build tag
-              type: string
-            webhookName:
-              description: Admission Webhook inputs Webhook instance name
-              type: string
-            webhookSecretName:
-              description: Webhook secret name
               type: string
           required:
           - forwardingPlaneImage
@@ -67,8 +62,6 @@ spec:
           - registry
           - replicas
           - tag
-          - webhookName
-          - webhookSecretName
           type: object
         status:
           description: NSMStatus defines the observed state of NSM

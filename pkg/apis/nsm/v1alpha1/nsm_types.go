@@ -26,10 +26,6 @@ type NSMSpec struct {
 	PullPolicy corev1.PullPolicy `json:"pullPolicy"`
 
 	// Admission Webhook inputs
-	// Webhook instance name
-	WebhookName string `json:"webhookName"`
-	// Webhook secret name
-	WebhookSecretName string `json:"webhookSecretName"`
 	// Desired number of admission webhooks to deploy
 	Replicas int32 `json:"replicas"`
 

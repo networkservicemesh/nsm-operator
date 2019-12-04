@@ -96,23 +96,9 @@ func schema_pkg_apis_nsm_v1alpha1_NSMSpec(ref common.ReferenceCallback) common.O
 							Format:      "",
 						},
 					},
-					"webhookName": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Admission Webhook inputs Webhook instance name",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"webhookSecretName": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Webhook secret name",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"replicas": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Desired number of admission webhooks to deploy",
+							Description: "Admission Webhook inputs Desired number of admission webhooks to deploy",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
@@ -131,7 +117,7 @@ func schema_pkg_apis_nsm_v1alpha1_NSMSpec(ref common.ReferenceCallback) common.O
 						},
 					},
 				},
-				Required: []string{"registry", "org", "tag", "pullPolicy", "webhookName", "webhookSecretName", "replicas", "forwardingPlaneName", "forwardingPlaneImage"},
+				Required: []string{"registry", "org", "tag", "pullPolicy", "replicas", "forwardingPlaneName", "forwardingPlaneImage"},
 			},
 		},
 	}

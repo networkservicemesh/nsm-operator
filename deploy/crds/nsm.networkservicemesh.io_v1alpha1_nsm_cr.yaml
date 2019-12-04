@@ -6,7 +6,6 @@ metadata:
 spec:
   # Add fields here
   webhookName: nsm-admission-webhook
-  webhookSecretName: nsm-admission-webhook-certs
   replicas: 1
   registry: docker.io
   org: networkservicemesh
