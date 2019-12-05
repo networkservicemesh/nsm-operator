@@ -1,1 +1,1 @@
-# nsm-operator
+# Network Service Mesh Operator
