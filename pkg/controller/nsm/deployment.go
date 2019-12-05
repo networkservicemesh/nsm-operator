@@ -84,7 +84,7 @@ func (r *ReconcileNSM) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deploy
 			},
 		},
 	}
-	// Set Memcached instance as the owner and controller
+	// Set NSM instance as the owner and controller
 	controllerutil.SetControllerReference(nsm, deploy, r.scheme)
 	return deploy
 }

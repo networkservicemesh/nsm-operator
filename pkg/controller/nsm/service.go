@@ -22,7 +22,7 @@ func (r *ReconcileNSM) serviceForWebhook(nsm *nsmv1alpha1.NSM) *corev1.Service {
 			Selector: map[string]string{"app": webhookName},
 		},
 	}
-
+	// Set NSM instance as the owner and controller
 	controllerutil.SetControllerReference(nsm, service, r.scheme)
 	return service
 }

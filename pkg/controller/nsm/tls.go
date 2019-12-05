@@ -1,7 +1,6 @@
 package nsm
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -14,15 +13,6 @@ import (
 	"strings"
 	"time"
 )
-
-type caBundle struct {
-	key  bytes.Buffer
-	cert bytes.Buffer
-}
-
-var ca caBundle
-var host = "nsm-admission-webhook-svc"
-var err = generateRSACerts(host, true, &ca.key, &ca.cert)
 
 // generateRSACerts generates a basic self signed certificate using a key length
 // of rsaBits, valid for validFor time.
