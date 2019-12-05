@@ -1,1 +1,1 @@
-# A kubernetes operator for deploying and managing Network Service Meshes
+# Network Service Mesh Operator
