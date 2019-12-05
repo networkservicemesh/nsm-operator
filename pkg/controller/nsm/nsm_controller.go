@@ -6,6 +6,7 @@ import (
 	"time"
 
 	nsmv1alpha1 "github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1"
+	admissionregv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -21,6 +22,7 @@ import (
 )
 
 var log = logf.Log.WithName("controller_nsm")
+var caCert []byte
 
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
@@ -79,7 +81,14 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO: Watch for admission webhook mutating config &admissionregistrationv1beta1.MutatingWebhookConfiguration{}
+	err = c.Watch(&source.Kind{Type: &admissionregv1beta1.MutatingWebhookConfiguration{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &nsmv1alpha1.NSM{},
+	})
+	if err != nil {
+		return err
+	}
+
 	// TODO: Watch for nsmgr daemonset &appsv1.DaemonSet{}
 	// TODO: Watch for forwarding plane daemonset &appsv1.DaemonSet{}
 
@@ -184,6 +193,26 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 		return reconcile.Result{}, err
 	}
 
+	// reconcile mutatingConfig for admission webhook
+	mutatingConfig := &admissionregv1beta1.MutatingWebhookConfiguration{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookMutatingConfigName, Namespace: nsm.Namespace}, mutatingConfig)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new mutatingConfig
+		mutatingConfig := r.mutatingConfigForWebhook(nsm)
+		reqLogger.Info("Creating a new mutatingConfig", "MutatingConfig.Namespace", mutatingConfig.Namespace, "MutatingConfig.Name", mutatingConfig.Name)
+		err = r.client.Create(context.TODO(), mutatingConfig)
+		time.Sleep(2 * time.Minute)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new mutatingConfig", "MutatingConfig.Namespace", mutatingConfig.Namespace, "MutatingConfig.Name", mutatingConfig.Name)
+			return reconcile.Result{}, err
+		}
+		// mutatingConfig created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get mutatingConfig")
+		return reconcile.Result{}, err
+	}
+	// Set NSM instance as the owner and controller
 	fmt.Println("Testing the reconciler running with no errors")
 	return reconcile.Result{}, nil
 }

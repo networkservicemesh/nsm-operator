@@ -3,11 +3,12 @@ package nsm
 import "time"
 
 const (
-	webhookName              = "nsm-admission-webhook"
-	webhookSecretName        = webhookName + "-certs"
-	webhookServiceName       = webhookName + "-svc"
-	webhookServicePort       = 443
-	webhookServiceTargetPort = 443
+	webhookName               = "nsm-admission-webhook"
+	webhookSecretName         = webhookName + "-certs"
+	webhookServiceName        = webhookName + "-svc"
+	webhookServicePort        = 443
+	webhookServiceTargetPort  = 443
+	webhookMutatingConfigName = webhookName + "-cfg"
 
 	// Deployment inputs for liveness and readiness probes to pods
 	probePort         = 5555
