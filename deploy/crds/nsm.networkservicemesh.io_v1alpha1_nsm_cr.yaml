@@ -2,7 +2,7 @@ apiVersion: nsm.networkservicemesh.io/v1alpha1
 kind: NSM
 metadata:
   name: nsm
-  namespace: nsm
+  namespace: default
 spec:
   # Add fields here
   webhookName: nsm-admission-webhook

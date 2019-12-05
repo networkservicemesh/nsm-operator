@@ -117,7 +117,7 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling NSM")
 
-	// Fetch the NSM nsm
+	// Fetch the NSM instance
 	nsm := &nsmv1alpha1.NSM{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, nsm)
 	if err != nil {
@@ -195,13 +195,13 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 
 	// reconcile mutatingConfig for admission webhook
 	mutatingConfig := &admissionregv1beta1.MutatingWebhookConfiguration{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookMutatingConfigName, Namespace: nsm.Namespace}, mutatingConfig)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookMutatingConfigName}, mutatingConfig)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new mutatingConfig
 		mutatingConfig := r.mutatingConfigForWebhook(nsm)
 		reqLogger.Info("Creating a new mutatingConfig", "MutatingConfig.Namespace", mutatingConfig.Namespace, "MutatingConfig.Name", mutatingConfig.Name)
 		err = r.client.Create(context.TODO(), mutatingConfig)
-		time.Sleep(2 * time.Minute)
+
 		if err != nil {
 			reqLogger.Error(err, "Failed to create new mutatingConfig", "MutatingConfig.Namespace", mutatingConfig.Namespace, "MutatingConfig.Name", mutatingConfig.Name)
 			return reconcile.Result{}, err

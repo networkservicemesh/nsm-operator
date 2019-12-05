@@ -17,10 +17,10 @@ func (r *ReconcileNSM) mutatingConfigForWebhook(nsm *nsmv1alpha1.NSM) *admission
 		},
 		Webhooks: []admissionregv1beta1.MutatingWebhook{
 			{
-				Name: "vpa.k8s.io",
+				Name: "admission-webhook.networkservicemesh.io",
 				ClientConfig: admissionregv1beta1.WebhookClientConfig{
 					Service: &admissionregv1beta1.ServiceReference{
-						Name:      "admission-webhook.networkservicemesh.io",
+						Name:      webhookServiceName,
 						Namespace: nsm.Namespace,
 						Path:      &path,
 					},
