@@ -29,14 +29,18 @@ type NSMSpec struct {
 	// Desired number of admission webhooks to deploy
 	Replicas int32 `json:"replicas"`
 
-	// Forwarding plane inputs
-	// Forwarding plane for NSM
+	// nsmgr configs
+	Insecure bool `json:"insecure"`
+
+	// Forwarding plane configs
 	ForwardingPlaneName  string `json:"forwardingPlaneName"`
 	ForwardingPlaneImage string `json:"forwardingPlaneImage"`
 
-	// TODO: ForwardingPlaneConfig
-	// TODO: Spire enabling option
-	// TODO: JaegerTracing option
+	// Enable Spire
+	Spire bool `json:"spire"`
+
+	// Enable Tracing
+	JaegerTracing bool `json:"jaegerTracing"`
 }
 
 // NSMStatus defines the observed state of NSM

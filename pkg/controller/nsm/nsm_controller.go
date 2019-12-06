@@ -89,7 +89,15 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO: Watch for nsmgr daemonset &appsv1.DaemonSet{}
+	// Watch for secondary resource nsmgr deamonset
+	err = c.Watch(&source.Kind{Type: &appsv1.DaemonSet{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &nsmv1alpha1.NSM{},
+	})
+	if err != nil {
+		return err
+	}
+
 	// TODO: Watch for forwarding plane daemonset &appsv1.DaemonSet{}
 
 	return nil
@@ -212,6 +220,26 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 		reqLogger.Error(err, "Failed to get mutatingConfig")
 		return reconcile.Result{}, err
 	}
+
+	// reconcile daemonset for nsmgr
+	daemonset := &corev1.Daemonset{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: "nsmgr", Namespace: nsm.Namespace}, daemonset)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new daemonset
+		daemonset := r.deamonSetForNSMGR(nsm)
+		reqLogger.Info("Creating a new daemonset", "Daemonset.Namespace", daemonset.Namespace, "Daemonset.Name", daemonset.Name)
+		err = r.client.Create(context.TODO(), daemonset)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new daemonset", "Daemonset.Namespace", daemonset.Namespace, "Daemonset.Name", daemonset.Name)
+			return reconcile.Result{}, err
+		}
+		// daemonset created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get daemonset")
+		return reconcile.Result{}, err
+	}
+
 	// Set NSM instance as the owner and controller
 	fmt.Println("Testing the reconciler running with no errors")
 	return reconcile.Result{}, nil

@@ -34,8 +34,14 @@ spec:
             forwardingPlaneImage:
               type: string
             forwardingPlaneName:
-              description: Forwarding plane inputs Forwarding plane for NSM
+              description: Forwarding plane configs
               type: string
+            insecure:
+              description: nsmgr configs
+              type: boolean
+            jaegerTracing:
+              description: Enable Tracing
+              type: boolean
             org:
               description: Image Owner org
               type: string
@@ -51,16 +57,22 @@ spec:
                 to deploy
               format: int32
               type: integer
+            spire:
+              description: Enable Spire
+              type: boolean
             tag:
               description: Image build tag
               type: string
           required:
           - forwardingPlaneImage
           - forwardingPlaneName
+          - insecure
+          - jaegerTracing
           - org
           - pullPolicy
           - registry
           - replicas
+          - spire
           - tag
           type: object
         status:

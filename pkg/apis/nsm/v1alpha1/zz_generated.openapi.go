@@ -103,9 +103,16 @@ func schema_pkg_apis_nsm_v1alpha1_NSMSpec(ref common.ReferenceCallback) common.O
 							Format:      "int32",
 						},
 					},
+					"insecure": {
+						SchemaProps: spec.SchemaProps{
+							Description: "nsmgr configs",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 					"forwardingPlaneName": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Forwarding plane inputs Forwarding plane for NSM",
+							Description: "Forwarding plane configs",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -116,8 +123,22 @@ func schema_pkg_apis_nsm_v1alpha1_NSMSpec(ref common.ReferenceCallback) common.O
 							Format: "",
 						},
 					},
+					"spire": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Enable Spire",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"jaegerTracing": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Enable Tracing",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 				},
-				Required: []string{"registry", "org", "tag", "pullPolicy", "replicas", "forwardingPlaneName", "forwardingPlaneImage"},
+				Required: []string{"registry", "org", "tag", "pullPolicy", "replicas", "insecure", "forwardingPlaneName", "forwardingPlaneImage", "spire", "jaegerTracing"},
 			},
 		},
 	}
