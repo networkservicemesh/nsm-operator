@@ -105,8 +105,8 @@ func schema_pkg_apis_nsm_v1alpha1_NSMSpec(ref common.ReferenceCallback) common.O
 					},
 					"insecure": {
 						SchemaProps: spec.SchemaProps{
-							Description: "nsmgr configs",
-							Type:        []string{"boolean"},
+							Description: "nsmgr configs true or false",
+							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
@@ -125,15 +125,15 @@ func schema_pkg_apis_nsm_v1alpha1_NSMSpec(ref common.ReferenceCallback) common.O
 					},
 					"spire": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Enable Spire",
-							Type:        []string{"boolean"},
+							Description: "Enable Spire true or false",
+							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"jaegerTracing": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Enable Tracing",
-							Type:        []string{"boolean"},
+							Description: "Enable Tracing true or false",
+							Type:        []string{"string"},
 							Format:      "",
 						},
 					},

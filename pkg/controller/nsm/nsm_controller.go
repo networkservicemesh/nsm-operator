@@ -222,7 +222,7 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 	}
 
 	// reconcile daemonset for nsmgr
-	daemonset := &corev1.Daemonset{}
+	daemonset := &appsv1.DaemonSet{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: "nsmgr", Namespace: nsm.Namespace}, daemonset)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new daemonset

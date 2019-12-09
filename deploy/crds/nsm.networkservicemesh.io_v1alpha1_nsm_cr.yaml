@@ -15,14 +15,14 @@ spec:
   replicas: 1
 
   # INSECURE env var
-  insecure: true
+  insecure: "true"
 
   # Forwarding Plane Configs
   forwardingPlaneName: vpp
   forwardingPlaneImage: vppagent-forwarder
 
   # Enable Spire
-  spire: false
+  spire: "false"
 
   # Enable Jaeger Tracing
-  jaegerTracing: false
+  jaegerTracing: "false"
