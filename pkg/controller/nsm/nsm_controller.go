@@ -89,7 +89,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for secondary resource nsmgr deamonset
+	// Watch for secondary resources nsmgr and forwading plane deamonsets
 	err = c.Watch(&source.Kind{Type: &appsv1.DaemonSet{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &nsmv1alpha1.NSM{},
@@ -97,9 +97,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
-
-	// TODO: Watch for forwarding plane daemonset &appsv1.DaemonSet{}
-
 	return nil
 }
 
@@ -222,21 +219,40 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 	}
 
 	// reconcile daemonset for nsmgr
-	daemonset := &appsv1.DaemonSet{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: "nsmgr", Namespace: nsm.Namespace}, daemonset)
+	daemonsetForNSMGR := &appsv1.DaemonSet{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: "nsmgr", Namespace: nsm.Namespace}, daemonsetForNSMGR)
 	if err != nil && errors.IsNotFound(err) {
-		// Define a new daemonset
-		daemonset := r.deamonSetForNSMGR(nsm)
-		reqLogger.Info("Creating a new daemonset", "Daemonset.Namespace", daemonset.Namespace, "Daemonset.Name", daemonset.Name)
-		err = r.client.Create(context.TODO(), daemonset)
+		// Define a new daemonsetForNSMGR
+		daemonsetForNSMGR := r.deamonSetForNSMGR(nsm)
+		reqLogger.Info("Creating a new daemonsetForNSMGR", "Daemonset.Namespace", daemonsetForNSMGR.Namespace, "Daemonset.Name", daemonsetForNSMGR.Name)
+		err = r.client.Create(context.TODO(), daemonsetForNSMGR)
 		if err != nil {
-			reqLogger.Error(err, "Failed to create new daemonset", "Daemonset.Namespace", daemonset.Namespace, "Daemonset.Name", daemonset.Name)
+			reqLogger.Error(err, "Failed to create new daemonsetForNSMGR", "Daemonset.Namespace", daemonsetForNSMGR.Namespace, "Daemonset.Name", daemonsetForNSMGR.Name)
 			return reconcile.Result{}, err
 		}
-		// daemonset created successfully - return and requeue
+		// daemonsetForNSMGR created successfully - return and requeue
 		return reconcile.Result{Requeue: true}, nil
 	} else if err != nil {
-		reqLogger.Error(err, "Failed to get daemonset")
+		reqLogger.Error(err, "Failed to get daemonsetForNSMGR")
+		return reconcile.Result{}, err
+	}
+
+	// reconcile daemonset for forwarding plane
+	daemonsetForFP := &appsv1.DaemonSet{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: "nsm-" + nsm.Spec.ForwardingPlaneName + "-plane", Namespace: nsm.Namespace}, daemonsetForFP)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new daemonsetForFP
+		daemonsetForFP := r.deamonSetForForwardingPlane(nsm)
+		reqLogger.Info("Creating a new daemonsetForFP", "Daemonset.Namespace", daemonsetForFP.Namespace, "Daemonset.Name", daemonsetForFP.Name)
+		err = r.client.Create(context.TODO(), daemonsetForFP)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new daemonsetForFP", "Daemonset.Namespace", daemonsetForFP.Namespace, "Daemonset.Name", daemonsetForFP.Name)
+			return reconcile.Result{}, err
+		}
+		// daemonsetForFP created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get daemonsetForFP")
 		return reconcile.Result{}, err
 	}
 
