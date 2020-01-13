@@ -67,6 +67,78 @@ func schema_pkg_apis_nsm_v1alpha1_NSMSpec(ref common.ReferenceCallback) common.O
 			SchemaProps: spec.SchemaProps{
 				Description: "NSMSpec defines the desired state of NSM",
 				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"registry": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image Repo inputs Container registry from where to pull the images",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"org": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image Owner org",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"tag": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image build tag",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"pullPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image pull policy",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"replicas": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Admission Webhook inputs Desired number of admission webhooks to deploy",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"insecure": {
+						SchemaProps: spec.SchemaProps{
+							Description: "nsmgr configs true or false",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"forwardingPlaneName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Forwarding plane configs",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"forwardingPlaneImage": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"spire": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Enable Spire true or false",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"jaegerTracing": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Enable Tracing true or false",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"registry", "org", "tag", "pullPolicy", "replicas", "insecure", "forwardingPlaneName", "forwardingPlaneImage", "spire", "jaegerTracing"},
 			},
 		},
 	}

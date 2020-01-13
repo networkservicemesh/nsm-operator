@@ -3,11 +3,17 @@ module github.com/acmenezes/nsm-operator
 go 1.13
 
 require (
+	github.com/go-openapi/spec v0.19.0
+	github.com/jmckind/argocd-operator v0.0.2
+	github.com/onsi/ginkgo v1.8.0
+	github.com/onsi/gomega v1.5.0
 	github.com/operator-framework/operator-sdk v0.12.0
 	github.com/spf13/pflag v1.0.3
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
-	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	k8s.io/kube-openapi v0.0.0-20190918143330-0270cf2f1c1d
+	k8s.io/kubernetes v1.15.4
 	sigs.k8s.io/controller-runtime v0.3.0
 )
 
