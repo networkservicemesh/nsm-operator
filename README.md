@@ -25,8 +25,7 @@ Some of the features intended to be embedded with the operator are
 
 ## Install
 
-At this point the installation is via the manifest below
-
+At this point to install the operator it's enough to apply the manifest below:
 ```
 cat <<EOF | kubectl apply -f -
 apiVersion: apps/v1
