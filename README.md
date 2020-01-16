@@ -13,7 +13,7 @@ The operator is a single pod workload that automates operational human knowledge
 
 Some of the features intended to be embedded with the operator are
 
-* Installing, configuring and making cleanups if needed;
+* Installing, configuring and making cleanups if needed
 
 * Upgrading, backing up and restoring any important state information
 
