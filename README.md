@@ -23,6 +23,13 @@ Some of the features intended to be embedded with the operator are
 
 * Auto-pilot functions such as distributing NSM registry into multiple pods according to the size of the cluster among other functions that may be addressed as well via automation.
 
+## Requirements
+
+In order to have NSM working check the minimal requirements [here][requirements]
+
+
+
+
 ## Install
 
 At this point to install the operator it's enough to apply the manifest below:
@@ -115,3 +122,4 @@ nsm-operator is released under the Apache 2.0 license. Please check the [LICENSE
 [nsm_whatis]:https://github.com/networkservicemesh/networkservicemesh/blob/master/docs/what-is-nsm.md
 [docs_dev]:./docs/development.md
 [license_file]:./LICENSE
+[requirements]:./docs/requirements.md
