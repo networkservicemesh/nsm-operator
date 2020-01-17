@@ -1,5 +1,6 @@
 ## Service Accounts and Other Objects
 ```
+cat <<EOF | kubectl apply -f -
 ---
 apiVersion: v1
 kind: Namespace
