@@ -2,11 +2,6 @@
 ```
 cat <<EOF | kubectl apply -f -
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: spire
----
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
