@@ -25,10 +25,7 @@ Some of the features intended to be embedded with the operator are
 
 ## Requirements
 
-In order to have NSM working check the minimal requirements [here][requirements]
-
-
-
+In order to have NSM working check the minimal requirements [here][requirements].
 
 ## Install
 
