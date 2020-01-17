@@ -149,6 +149,7 @@ kind: ServiceAccount
 metadata:
   name: forward-plane-acc
   namespace: default
+EOF
 ```
 ## Spire
 
