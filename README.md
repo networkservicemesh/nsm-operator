@@ -84,7 +84,7 @@ spec:
   # repo configs
   registry: docker.io
   org: networkservicemesh
-  tag: master
+  tag: v0.2.0
   pullPolicy: IfNotPresent
 
   # admission webhook configs
