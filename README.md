@@ -29,45 +29,14 @@ In order to have NSM working check the minimal requirements [here][requirements]
 
 ## Install
 
-At this point to install the operator it's enough to apply the manifest below:
-```
-cat <<EOF | kubectl apply -f -
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nsm-operator
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      name: nsm-operator
-  template:
-    metadata:
-      labels:
-        name: nsm-operator
-    spec:
-      serviceAccountName: nsm-operator
-      containers:
-        - name: nsm-operator
-          # Replace this with the built image name
-          image: quay.io/acmenezes/nsm-operator:v0.0.1
-          command:
-          - nsm-operator
-          imagePullPolicy: Always
-          env:
-            - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: OPERATOR_NAME
-              value: "nsm-operator"
-EOF
-```
+At this point to install the operator it's enough to apply the manifests:
 
+```
+git clone git@github.com:acmenezes/nsm-operator.git
+cd nsm-operator
+kubectl apply -f deploy/crds/nsm.networkservicemesh.io_nsms_crd.yaml
+kubectl apply -f deploy/operator.yaml
+```
 ## Usage 
 
 To create a new NSM custom resource, after deploying the operator itself, use the CR manifest below.
