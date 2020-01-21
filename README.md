@@ -30,12 +30,13 @@ In order to have NSM working check the minimal requirements [here][requirements]
 ## Install
 
 At this point to install the operator it's enough to apply the manifests:
+Once we get ready with OLM, everything will be installed by it.
 
 ```
 git clone git@github.com:acmenezes/nsm-operator.git
 cd nsm-operator
 kubectl apply -f deploy/crds/nsm.networkservicemesh.io_nsms_crd.yaml
-kubectl apply -f deploy/operator.yaml
+kubectl apply -f deploy/operator_resources.yaml
 ```
 ## Usage 
 
@@ -43,36 +44,7 @@ To create a new NSM custom resource, after deploying the operator itself, use th
 Here we have an example with the Vector Packet Processing as a forwarding plane for nsm.
 
 ```
-cat <<EOF | kubectl apply -f -
-apiVersion: nsm.networkservicemesh.io/v1alpha1
-kind: NSM
-metadata:
-  name: nsm
-  namespace: default
-spec:
-  # repo configs
-  registry: docker.io
-  org: networkservicemesh
-  tag: v0.2.0
-  pullPolicy: IfNotPresent
-
-  # admission webhook configs
-  webhookName: nsm-admission-webhook
-  replicas: 1
-
-  # INSECURE env var
-  insecure: "true"
-
-  # Forwarding Plane Configs
-  forwardingPlaneName: vpp
-  forwardingPlaneImage: vppagent-forwarder
-
-  # Enable Spire
-  spire: "false"
-
-  # Enable Jaeger Tracing
-  jaegerTracing: "false"
-EOF
+kubectl apply -f deploy/crds/nsm.networkservicemesh.io_v1alpha1_nsm_cr.yaml
 ```
 
 ## Contributing
