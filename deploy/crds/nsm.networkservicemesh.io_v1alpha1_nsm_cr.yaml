@@ -15,7 +15,7 @@ spec:
   replicas: 1
 
   # INSECURE env var
-  insecure: "true"
+  insecure: "false"
 
   # Forwarding Plane Configs
   forwardingPlaneName: vpp
