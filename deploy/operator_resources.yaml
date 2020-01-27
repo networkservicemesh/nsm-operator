@@ -124,7 +124,7 @@ spec:
       containers:
         - name: nsm-operator
           # Replace this with the built image name
-          image: quay.io/acmenezes/nsm-operator:v0.0.1
+          image: quay.io/acmenezes/nsm-operator:v0.0.2
           command:
           - nsm-operator
           imagePullPolicy: Always
