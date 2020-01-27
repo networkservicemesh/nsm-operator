@@ -76,8 +76,8 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 								// {Name: "JAEGER_AGENT_PORT", Value: nsm.Spec.JaegerTracing}
 							},
 							VolumeMounts: []corev1.VolumeMount{
-								{Name: "kubelet-socket",
-									MountPath: "/var/lib/kubelet/device-plugins",
+								{Name: "nsm-socket",
+									MountPath: "/var/lib/networkservicemesh",
 								},
 								{Name: "nsm-plugin-socket",
 									MountPath: "/var/lib/networkservicemesh/plugins",
@@ -105,7 +105,9 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 										Port: intstr.FromInt(probePort),
 									},
 								},
-							},
+								InitialDelaySeconds: probeInitialDelay,
+								PeriodSeconds:       probePeriod,
+								TimeoutSeconds:      probeTimeout},
 						},
 						// nsmd-k8s container
 						{

@@ -13,7 +13,7 @@ const (
 	// Deployment inputs for liveness and readiness probes to pods
 	probePort         = 5555
 	probeInitialDelay = 10
-	probePeriod       = 3
+	probePeriod       = 10
 	probeTimeout      = 3
 
 	// TLS Certs configuration for webhook
