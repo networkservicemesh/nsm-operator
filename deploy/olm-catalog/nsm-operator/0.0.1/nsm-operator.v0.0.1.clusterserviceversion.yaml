@@ -27,12 +27,13 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    categories: Service Mesh
+    categories: Networking
     certified: 'false'
     containerImage: quay.io/acmenezes/nsm-operator:v0.0.1
     description: Installs and manages the full life cycle of network service meshes.
     repository: https://github.com/acmenezes/nsm-operator
     support: Alexandre Menezes
+    createdAt: 2020-01-28 10:45:31
   name: nsm-operator.v0.0.1
   namespace: placeholder
 spec:
@@ -230,7 +231,7 @@ spec:
     type: OwnNamespace
   - supported: true
     type: SingleNamespace
-  - supported: false
+  - supported: true
     type: MultiNamespace
   - supported: true
     type: AllNamespaces
@@ -246,11 +247,12 @@ spec:
       url: https://networkservicemesh.io
     - name: NSM Operator
       url: https://github.com/acmenezes/nsm-operator
-  Maintainers:
+  maintainers:
     - email: amenezes@redhat.com
       name: Alexandre Menezes
 
   maturity: alpha
-  provider: {}
+  provider:
+    name: networkservicemesh.io
   replaces: nsm-operator.v0.0.0
   version: 0.0.1
