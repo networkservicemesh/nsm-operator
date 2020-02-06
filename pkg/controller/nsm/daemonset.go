@@ -16,7 +16,7 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 	tag := nsm.Spec.Tag
 	pullPolicy := nsm.Spec.PullPolicy
 	volType := corev1.HostPathDirectoryOrCreate
-
+	privmode := true
 	daemonset := &appsv1.DaemonSet{
 
 		ObjectMeta: metav1.ObjectMeta{
@@ -67,6 +67,9 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 							Name:            "nsmd",
 							Image:           registry + "/" + org + "/nsmd:" + tag,
 							ImagePullPolicy: pullPolicy,
+							SecurityContext: &corev1.SecurityContext{
+								Privileged: &privmode,
+							},
 							Env: []corev1.EnvVar{
 								{Name: "INSECURE", Value: nsm.Spec.Insecure},
 								{Name: "TRACER_ENABLED", Value: nsm.Spec.JaegerTracing},
@@ -114,6 +117,9 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 							Name:            "nsmd-k8s",
 							Image:           registry + "/" + org + "/nsmd-k8s:" + tag,
 							ImagePullPolicy: pullPolicy,
+							SecurityContext: &corev1.SecurityContext{
+								Privileged: &privmode,
+							},
 							Env: []corev1.EnvVar{
 								{Name: "INSECURE", Value: nsm.Spec.Insecure},
 								{Name: "POD_NAME", ValueFrom: &corev1.EnvVarSource{

@@ -33,6 +33,7 @@ func (r *ReconcileNSM) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deploy
 					Labels: ls,
 				},
 				Spec: corev1.PodSpec{
+					ServiceAccountName: "nsm-webhook-acc",
 					Containers: []corev1.Container{{
 						Name:            webhookName,
 						Image:           registry + "/" + org + "/admission-webhook:" + tag,
