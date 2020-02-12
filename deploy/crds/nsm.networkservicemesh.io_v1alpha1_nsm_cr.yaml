@@ -2,7 +2,7 @@ apiVersion: nsm.networkservicemesh.io/v1alpha1
 kind: NSM
 metadata:
   name: nsm
-  namespace: default
+  namespace: nsm
 spec:
   # repo configs
   registry: docker.io
