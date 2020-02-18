@@ -6,7 +6,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: nsm-operator
-  namespace: default
+  namespace: nsm
 roleRef:
   kind: ClusterRole
   name: nsm-operator

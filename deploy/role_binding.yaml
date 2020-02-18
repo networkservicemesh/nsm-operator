@@ -5,6 +5,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: nsm-operator
+  namespace: nsm
 roleRef:
   kind: Role
   name: nsm-operator

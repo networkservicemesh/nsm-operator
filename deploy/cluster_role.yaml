@@ -4,9 +4,18 @@ metadata:
   # "namespace" omitted since ClusterRoles are not namespaced
   name: nsm-operator
 rules:
+
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
   - mutatingwebhookconfigurations
+  - mutatingwebhookconfigurations/finalizers
   verbs:
   - '*'
+- apiGroups:
+  - nsm.networkservicemesh.io
+  resources:
+  - '*'
+  verbs:
+  - '*'
+
