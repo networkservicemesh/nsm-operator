@@ -43,12 +43,23 @@ type NSMSpec struct {
 	JaegerTracing string `json:"jaegerTracing"`
 }
 
+// NSMPhase is the type for the operator phases
+type NSMPhase string
+
+// Operator phases
+const (
+	NSMPhaseInitial     NSMPhase = ""
+	NSMPhaseRunning     NSMPhase = "Running"
+	NSMPhaseCreating    NSMPhase = "Creating"
+	NSMPhasePending     NSMPhase = "Pending"
+	NSMPhaseTerminating NSMPhase = "Terminating"
+)
+
 // NSMStatus defines the observed state of NSM
 // +k8s:openapi-gen=true
 type NSMStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	// Operator phases during deployment
+	Status NSMPhase `json:"status"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

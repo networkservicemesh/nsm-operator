@@ -211,11 +211,11 @@ func (r *ReconcileNSM) deamonSetForForwardingPlane(nsm *nsmv1alpha1.NSM) *appsv1
 		},
 		Spec: appsv1.DaemonSetSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{"app": "nsm-" + fp + "-plane"},
+				MatchLabels: map[string]string{"app": "nsm-" + fp + "-forwarder"},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": "nsm-" + fp + "-plane"},
+					Labels: map[string]string{"app": "nsm-" + fp + "-forwarder"},
 				},
 				Spec: corev1.PodSpec{
 					HostPID:            true,

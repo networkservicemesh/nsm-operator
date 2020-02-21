@@ -38,6 +38,11 @@ func (r *ReconcileNSM) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deploy
 						Name:            webhookName,
 						Image:           registry + "/" + org + "/admission-webhook:" + tag,
 						ImagePullPolicy: webhookPullPolicy,
+						// SecurityContext: &corev1.SecurityContext{
+						// 	Capabilities: &corev1.Capabilities{
+						// 		Add: []corev1.Capability{"NET_BIND_SERVICE"},
+						// 	},
+						// },
 						Env: []corev1.EnvVar{
 							{Name: "REPO", Value: org},
 							{Name: "TAG", Value: tag},

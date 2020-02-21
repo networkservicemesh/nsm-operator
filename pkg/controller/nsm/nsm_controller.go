@@ -2,7 +2,6 @@ package nsm
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	nsmv1alpha1 "github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1"
@@ -125,23 +124,27 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 	// Fetch the NSM instance
 	nsm := &nsmv1alpha1.NSM{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, nsm)
+
+	// Updating nsm object status
+	nsm.Status.Status = nsmv1alpha1.NSMPhasePending
+	if updateErr := r.client.Status().Update(context.TODO(), nsm); updateErr != nil {
+		reqLogger.Info("Failed to update status", "Error", err.Error())
+	}
+
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			fmt.Println("Testing the reconciler - Object Not Found")
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
-		fmt.Println("Testing the reconciler - Errors encountered")
 		return reconcile.Result{}, err
 	}
 
 	// reconcile secrets for admission webhook
 	secret := &corev1.Secret{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookSecretName, Namespace: nsm.Namespace}, secret)
-	fmt.Println(err)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new Secret
 		secret := r.secretForWebhook(nsm)
@@ -156,6 +159,12 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get Secret")
 		return reconcile.Result{}, err
+	}
+
+	// Updating nsm object status
+	nsm.Status.Status = nsmv1alpha1.NSMPhaseCreating
+	if updateErr := r.client.Status().Update(context.TODO(), nsm); updateErr != nil {
+		reqLogger.Info("Failed to update status", "Error", err.Error())
 	}
 
 	// reconcile deployment for admission webhook
@@ -239,7 +248,7 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 
 	// reconcile daemonset for forwarding plane
 	daemonsetForFP := &appsv1.DaemonSet{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: "nsm-" + nsm.Spec.ForwardingPlaneName + "-plane", Namespace: nsm.Namespace}, daemonsetForFP)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: "nsm-" + nsm.Spec.ForwardingPlaneName + "-forwarder", Namespace: nsm.Namespace}, daemonsetForFP)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new daemonsetForFP
 		daemonsetForFP := r.deamonSetForForwardingPlane(nsm)
@@ -256,7 +265,12 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 		return reconcile.Result{}, err
 	}
 
+	// Updating nsm object status
+	nsm.Status.Status = nsmv1alpha1.NSMPhaseRunning
+	if updateErr := r.client.Status().Update(context.TODO(), nsm); updateErr != nil {
+		reqLogger.Info("Failed to update status", "Error", err.Error())
+	}
+
 	// Set NSM instance as the owner and controller
-	fmt.Println("Testing the reconciler running with no errors")
 	return reconcile.Result{}, nil
 }
