@@ -125,10 +125,11 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 	nsm := &nsmv1alpha1.NSM{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, nsm)
 
-	// Updating nsm object status
-	nsm.Status.Status = nsmv1alpha1.NSMPhasePending
-	if updateErr := r.client.Status().Update(context.TODO(), nsm); updateErr != nil {
-		reqLogger.Info("Failed to update status", "Error", err.Error())
+	if nsm.Status.Phase == nsmv1alpha1.NSMPhaseInitial {
+		nsm.Status.Phase = nsmv1alpha1.NSMPhaseCreating
+		if updateErr := r.client.Status().Update(context.TODO(), nsm); updateErr != nil {
+			reqLogger.Info("Failed to update status", "Error", err.Error())
+		}
 	}
 
 	if err != nil {
@@ -159,12 +160,6 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get Secret")
 		return reconcile.Result{}, err
-	}
-
-	// Updating nsm object status
-	nsm.Status.Status = nsmv1alpha1.NSMPhaseCreating
-	if updateErr := r.client.Status().Update(context.TODO(), nsm); updateErr != nil {
-		reqLogger.Info("Failed to update status", "Error", err.Error())
 	}
 
 	// reconcile deployment for admission webhook
@@ -265,12 +260,12 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 		return reconcile.Result{}, err
 	}
 
-	// Updating nsm object status
-	nsm.Status.Status = nsmv1alpha1.NSMPhaseRunning
-	if updateErr := r.client.Status().Update(context.TODO(), nsm); updateErr != nil {
-		reqLogger.Info("Failed to update status", "Error", err.Error())
+	if nsm.Status.Phase != nsmv1alpha1.NSMPhaseRunning {
+		nsm.Status.Phase = nsmv1alpha1.NSMPhaseRunning
+		if updateErr := r.client.Status().Update(context.TODO(), nsm); updateErr != nil {
+			reqLogger.Info("Failed to update status", "Error", err.Error())
+		}
 	}
-
 	// Set NSM instance as the owner and controller
 	return reconcile.Result{}, nil
 }

@@ -78,11 +78,11 @@ spec:
         status:
           description: NSMStatus defines the observed state of NSM
           properties:
-            status:
+            phase:
               description: Operator phases during deployment
               type: string
           required:
-          - status
+          - phase
           type: object
       type: object
   version: v1alpha1

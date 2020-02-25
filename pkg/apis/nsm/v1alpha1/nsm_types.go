@@ -49,9 +49,9 @@ type NSMPhase string
 // Operator phases
 const (
 	NSMPhaseInitial     NSMPhase = ""
-	NSMPhaseRunning     NSMPhase = "Running"
-	NSMPhaseCreating    NSMPhase = "Creating"
 	NSMPhasePending     NSMPhase = "Pending"
+	NSMPhaseCreating    NSMPhase = "Creating"
+	NSMPhaseRunning     NSMPhase = "Running"
 	NSMPhaseTerminating NSMPhase = "Terminating"
 )
 
@@ -59,7 +59,7 @@ const (
 // +k8s:openapi-gen=true
 type NSMStatus struct {
 	// Operator phases during deployment
-	Status NSMPhase `json:"status"`
+	Phase NSMPhase `json:"phase"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
