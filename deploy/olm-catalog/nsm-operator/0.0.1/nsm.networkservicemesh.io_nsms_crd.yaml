@@ -62,7 +62,7 @@ spec:
               type: string
             tag:
               description: Image build tag
-              type: string
+              type: string          
           required:
           - forwardingPlaneImage
           - forwardingPlaneName
@@ -77,6 +77,12 @@ spec:
           type: object
         status:
           description: NSMStatus defines the observed state of NSM
+          properties:
+            phase:
+              description: Operator phases during deployment
+              type: string
+          required:
+          - phase
           type: object
       type: object
   version: v1alpha1

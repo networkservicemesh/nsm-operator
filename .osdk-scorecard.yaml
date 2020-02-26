@@ -6,10 +6,6 @@ scorecard:
     - basic:
         cr-manifest:
           - "deploy/crds/nsm.networkservicemesh.io_v1alpha1_nsm_cr.yaml"
-        # olm-deployed: false
-        # crds-dir: "deploy/olm-catalog/nsm-operator/0.0.1/"        
-        # namespace: nsm
-
     - olm:
         cr-manifest:
           - "deploy/crds/nsm.networkservicemesh.io_v1alpha1_nsm_cr.yaml"
