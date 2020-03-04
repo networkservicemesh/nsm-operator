@@ -4,12 +4,12 @@ metadata:
   name: nsm-operator.v0.0.1
   namespace: placeholder
   annotations:
-    alm-examples: '[{"apiVersion":"nsm.networkservicemesh.io/v1alpha1","kind":"NSM","metadata":{"name":"example-nsm","namespace":"default"},"spec":{"forwardingPlaneImage":"vppagent-forwarder","forwardingPlaneName":"vpp","insecure":"true","jaegerTracing":"false","org":"networkservicemesh","pullPolicy":"IfNotPresent","registry":"docker.io","replicas":1,"spire":"false","tag":"v0.2.0","version":"v0.2.0"}}]'
+    alm-examples: '[{"apiVersion":"nsm.networkservicemesh.io/v1alpha1","kind":"NSM","metadata":{"name":"example-nsm","namespace":"default"},"spec":{"forwardingPlaneImage":"vppagent-forwarder","forwardingPlaneName":"vpp","insecure":true,"version":"v0.2.0"}}]'
     categories: Networking
     certified: 'false'
     createdAt: 2020-01-28T10:45:31.000Z
     description: Installs and manages the full life cycle of network service meshes.
-    containerImage: 'quay.io/acmenezes/nsm-operator:v0.0.7'
+    containerImage: 'quay.io/acmenezes/nsm-operator:v0.0.1'
     support: Alexandre Menezes
     capabilities: Basic Install
     repository: 'https://github.com/acmenezes/nsm-operator'
@@ -34,31 +34,6 @@ spec:
           - kind: Service
             version: v1            
         specDescriptors:
-          - description: public container image repository for network service mesh containers
-            displayName: registry
-            path: registry
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:text'
-          - description: organization on account name on public container image repo
-            displayName: Org
-            path: org
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:text'
-          - description: network service mesh release tag
-            displayName: Tag
-            path: tag
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:text'
-          - description: container image pull pullPolicy
-            displayName: PullPolicy
-            path: pullPolicy
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:text'
-          - description: number of webhook replicas to deploy
-            displayName: replicas
-            path: replicas
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:podCount'
           - description: If it should use secure communication with Spire service (must have spire enabled)
             displayName: insecure
             path: insecure
@@ -74,16 +49,6 @@ spec:
             path: forwardingPlaneImage
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:text'
-          - description: Enable Spire Service
-            displayName: Enable Spire
-            path: spire
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
-          - description: Enable Jaeger Tracing
-            displayName: Enable Jaeger
-            path: jaegerTracing
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
           - description: nsm version
             displayName: nsm version
             path: version
@@ -367,7 +332,7 @@ spec:
                       - name: OPERATOR_NAME
                         value: nsm-operator
                     image: >-
-                      quay.io/acmenezes/nsm-operator@sha256:af988fa384cdb391f2d24c43219e3a17fede883ebb70ca785be5d76615440400
+                      quay.io/acmenezes/nsm-operator@sha256:587d5884ea110b2450a6d0d7fe00c7374907c4cd83f37e729d7eb41e2f168794
                     imagePullPolicy: Always
                     name: nsm-operator
                     resources:

@@ -11,11 +11,11 @@ import (
 
 func (r *ReconcileNSM) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deployment {
 	ls := labelsForNSMAdmissionWebhook(nsm.Name)
-	replicas := nsm.Spec.Replicas
-	registry := nsm.Spec.Registry
-	org := nsm.Spec.Org
-	tag := nsm.Spec.Tag
-	webhookPullPolicy := nsm.Spec.PullPolicy
+	replicas := webhookReplicas
+	registry := nsmRegistry
+	org := nsmOrg
+	tag := nsmVersion
+	webhookPullPolicy := nsmPullPolicy
 
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
