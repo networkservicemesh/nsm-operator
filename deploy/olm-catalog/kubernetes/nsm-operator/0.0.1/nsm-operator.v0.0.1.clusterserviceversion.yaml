@@ -4,12 +4,12 @@ metadata:
   name: nsm-operator.v0.0.1
   namespace: placeholder
   annotations:
-    alm-examples: '[{"apiVersion":"nsm.networkservicemesh.io/v1alpha1","kind":"NSM","metadata":{"name":"example-nsm","namespace":"default"},"spec":{"forwardingPlaneImage":"vppagent-forwarder","forwardingPlaneName":"vpp","insecure":"true","jaegerTracing":"false","org":"networkservicemesh","pullPolicy":"IfNotPresent","registry":"docker.io","replicas":1,"spire":"false","tag":"v0.2.0"}}]'
+    alm-examples: '[{"apiVersion":"nsm.networkservicemesh.io/v1alpha1","kind":"NSM","metadata":{"name":"example-nsm","namespace":"default"},"spec":{"forwardingPlaneImage":"vppagent-forwarder","forwardingPlaneName":"vpp","insecure":"true","jaegerTracing":"false","org":"networkservicemesh","pullPolicy":"IfNotPresent","registry":"docker.io","replicas":1,"spire":"false","tag":"v0.2.0","version":"v0.2.0"}}]'
     categories: Networking
     certified: 'false'
     createdAt: 2020-01-28T10:45:31.000Z
     description: Installs and manages the full life cycle of network service meshes.
-    containerImage: 'quay.io/acmenezes/nsm-operator:v0.0.5'
+    containerImage: 'quay.io/acmenezes/nsm-operator:v0.0.7'
     support: Alexandre Menezes
     capabilities: Basic Install
     repository: 'https://github.com/acmenezes/nsm-operator'
@@ -25,12 +25,14 @@ spec:
         resources:
           - kind: Deployment
             version: v1
-          - kind: Daemonset
-            version: v1
+          - kind: DaemonSet
+            version: apps/v1
           - kind: MutatingWebhookConfiguration
-            version: v1beta1
+            version: admissionregistration/v1
           - kind: Secret
-            version: v1              
+            version: v1
+          - kind: Service
+            version: v1            
         specDescriptors:
           - description: public container image repository for network service mesh containers
             displayName: registry
@@ -248,7 +250,6 @@ spec:
             - list
             - watch
           serviceAccountName: nse-acc
-
         - rules:
           - apiGroups:
             - '*'
@@ -259,7 +260,6 @@ spec:
             - list
             - watch
           serviceAccountName: nsc-acc
-
         - rules:
           - apiGroups:
             - '*'
@@ -270,6 +270,16 @@ spec:
             - list
             - watch
           serviceAccountName: forward-plane-acc
+        - rules:
+          - apiGroups:
+            - '*'
+            resources:
+            - '*'
+            verbs:
+            - get
+            - list
+            - watch
+          serviceAccountName: nsm-webhook-acc        
       clusterPermissions:
         - rules:
             - apiGroups:
@@ -301,37 +311,7 @@ spec:
             - apiGroups: [""]
               resources: ["nodes", "services", "namespaces"]
               verbs: ["get", "list", "watch"]
-          serviceAccountName: nsmgr-acc
-        - rules:
-            - verbs:
-                - use
-              apiGroups:
-                - security.openshift.io
-              resources:
-                - securitycontextconstraints
-              resourceNames:
-                - anyuid                
-          serviceAccountName: nsm-webhook-acc
-        - rules:
-            - verbs:
-                - use
-              apiGroups:
-                - security.openshift.io
-              resources:
-                - securitycontextconstraints
-              resourceNames:
-                - privileged
-          serviceAccountName: forward-plane-acc
-        - rules:
-            - verbs:
-                - use
-              apiGroups:
-                - security.openshift.io
-              resources:
-                - securitycontextconstraints
-              resourceNames:
-                - privileged
-          serviceAccountName: nsmgr-acc          
+          serviceAccountName: nsmgr-acc      
       deployments:
         - name: nsm-operator
           spec:
@@ -360,7 +340,7 @@ spec:
                       - name: OPERATOR_NAME
                         value: nsm-operator
                     image: >-
-                      quay.io/acmenezes/nsm-operator@sha256:c56220e45eedba4798813409237c37e22643bb1a6ae055a0627d9080e1d049c0
+                      quay.io/acmenezes/nsm-operator@sha256:af988fa384cdb391f2d24c43219e3a17fede883ebb70ca785be5d76615440400
                     imagePullPolicy: Always
                     name: nsm-operator
                     resources:
@@ -382,7 +362,7 @@ spec:
     - type: SingleNamespace
       supported: true
     - type: MultiNamespace
-      supported: true
+      supported: false
     - type: AllNamespaces
       supported: false
   apiservicedefinitions: {}

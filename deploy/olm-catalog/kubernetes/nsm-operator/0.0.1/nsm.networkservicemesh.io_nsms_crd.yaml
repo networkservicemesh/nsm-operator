@@ -62,7 +62,10 @@ spec:
               type: string
             tag:
               description: Image build tag
-              type: string          
+              type: string
+            version:
+              description: Version field for reference on Openshift UI
+              type: string
           required:
           - forwardingPlaneImage
           - forwardingPlaneName
@@ -74,6 +77,7 @@ spec:
           - replicas
           - spire
           - tag
+          - version
           type: object
         status:
           description: NSMStatus defines the observed state of NSM

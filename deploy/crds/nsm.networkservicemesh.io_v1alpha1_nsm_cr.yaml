@@ -25,3 +25,6 @@ spec:
 
   # Enable Jaeger Tracing
   jaegerTracing: "false"
+
+  # Version field for Openshift UI
+  version: "v0.2.0"

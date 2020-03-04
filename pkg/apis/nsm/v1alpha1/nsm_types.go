@@ -41,6 +41,9 @@ type NSMSpec struct {
 
 	// Enable Tracing true or false
 	JaegerTracing string `json:"jaegerTracing"`
+
+	// Version field for reference on Openshift UI
+	Version string `json:"version"`
 }
 
 // NSMPhase is the type for the operator phases

@@ -3,6 +3,7 @@ package nsm
 import "time"
 
 const (
+	version                   = "v0.2.0"
 	webhookName               = "nsm-admission-webhook"
 	webhookSecretName         = webhookName + "-certs"
 	webhookServiceName        = webhookName + "-svc"
