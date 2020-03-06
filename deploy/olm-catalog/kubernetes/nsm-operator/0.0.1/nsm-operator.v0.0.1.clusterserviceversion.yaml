@@ -152,7 +152,6 @@ spec:
 
   maturity: alpha
   version: 0.0.1
-  replaces: nsm-operator.v0.0.0
   minKubeVersion: ''
   keywords:
     - service mesh
