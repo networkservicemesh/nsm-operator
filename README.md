@@ -23,25 +23,29 @@ Some of the features intended to be embedded with the operator are
 
 * Auto-pilot functions such as distributing NSM registry into multiple pods according to the size of the cluster among other functions that may be addressed as well via automation.
 
-## Requirements
-
-In order to have NSM working check the minimal requirements [here][requirements].
-
 ## Install
 
-At this point to install the operator it's enough to apply the manifests:
-Once we get ready with OLM, everything will be installed by it.
+#### Getting Started
 
-```
-git clone git@github.com:acmenezes/nsm-operator.git
-cd nsm-operator
-kubectl apply -f deploy/crds/nsm.networkservicemesh.io_nsms_crd.yaml
-kubectl apply -f deploy/operator_resources.yaml
-```
+The network service mesh operator is supported for use with kubernetes 1.14 or above and Openshift 4 or above. It can be installed automatically using the Operator Lifecycle Manager or it can be installed manually through standard kubernetes yaml manifests.
+
+#### Operator Lifecycle Manager
+
+The Operator Lifecycle Manager, or OLM, is the preferred method. It's simple, faster and cleaner. <em> OLM extends Kubernetes to provide a declarative way to install, manage, and upgrade Operators and their dependencies in a cluster. </em> It manages the available operators using catalogs, it takes care of automatic updates and dependencies, has a discover mechanism to advertise services provided by available operators, prevents conflicts if two operators try to use the same API, for example, and provides a nice way to build declarative UI controls to configure operator services. OLM comes installed by default in Openshift 4.
+
+If want to install OLM in a kubernetes cluster you can try the [install guide][olm_install_guide].
+
+#### Install Methods:
+
+[Openshift Embedded Operator Hub][openshift_olm_install]
+[Openshift Manual Install][openshift_manual_install]
+[Kubernetes OLM Install][k8s_olm_install]
+[Kubernetes Manual Install][k8s_manual_Install]
+
+
 ## Usage 
 
-To create a new NSM custom resource, after deploying the operator itself, use the CR manifest below.
-Here we have an example with the Vector Packet Processing as a forwarding plane for nsm.
+To create a new NSM custom resource, after deploying the operator itself, use the CR manifest below. Here we have an example with the Vector Packet Processing as a forwarding plane for nsm.
 
 ```
 kubectl apply -f deploy/crds/nsm.networkservicemesh.io_v1alpha1_nsm_cr.yaml
@@ -61,3 +65,8 @@ nsm-operator is released under the Apache 2.0 license. Please check the [LICENSE
 [docs_dev]:./docs/development.md
 [license_file]:./LICENSE
 [requirements]:./docs/requirements.md
+[olm_install_guide]:https://github.com/operator-framework/operator-lifecycle-manager/blob/master/doc/install/install.md
+[openshift_olm_install]:./docs/openshift_olm_install.md
+[openshift_manual_install]:./docs/openshift_manual_install.md
+[k8s_olm_install]:./docs/k8s_olm_install.yaml
+[k8s_manual_install]:./docs/k8s_manual_install.yaml
