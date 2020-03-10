@@ -53,7 +53,7 @@ To create a new NSM custom resource, after deploying the operator itself, use th
 ```
 kubectl apply -f deploy/crds/nsm.networkservicemesh.io_v1alpha1_nsm_cr.yaml
 ```
-Now we shold see something like this:
+Now we should see something like this:
 ```
 oc get pods -n nsm
 
