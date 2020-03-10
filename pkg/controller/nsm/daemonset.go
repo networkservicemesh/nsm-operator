@@ -11,14 +11,21 @@ import (
 
 func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet {
 
-	registry := nsm.Spec.Registry
-	org := nsm.Spec.Org
-	tag := nsm.Spec.Tag
-	pullPolicy := nsm.Spec.PullPolicy
+	registry := nsmRegistry
+	org := nsmOrg
+	tag := nsmVersion
+	pullPolicy := nsmPullPolicy
 	volType := corev1.HostPathDirectoryOrCreate
 	privmode := true
-	daemonset := &appsv1.DaemonSet{
+	insecure := "true"
 
+	if nsm.Spec.Insecure {
+		insecure = "true"
+	} else {
+		insecure = "false"
+	}
+
+	daemonset := &appsv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "nsmgr",
 			Namespace: nsm.Namespace,
@@ -42,9 +49,9 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 							Image:           registry + "/" + org + "/nsmdp:" + tag,
 							ImagePullPolicy: pullPolicy,
 							Env: []corev1.EnvVar{
-								{Name: "INSECURE", Value: nsm.Spec.Insecure},
-								{Name: "TRACER_ENABLED", Value: nsm.Spec.JaegerTracing},
+								{Name: "INSECURE", Value: insecure},
 
+								// {Name: "TRACER_ENABLED", Value: nsm.Spec.JaegerTracing},
 								// TODO: Jaeger tracing feature
 								// {Name: "JAEGER_AGENT_HOST", Value: nsm.Spec.JaegerTracing},
 								// {Name: "JAEGER_AGENT_PORT", Value: nsm.Spec.JaegerTracing}
@@ -71,8 +78,8 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 								Privileged: &privmode,
 							},
 							Env: []corev1.EnvVar{
-								{Name: "INSECURE", Value: nsm.Spec.Insecure},
-								{Name: "TRACER_ENABLED", Value: nsm.Spec.JaegerTracing},
+								{Name: "INSECURE", Value: insecure},
+								// {Name: "TRACER_ENABLED", Value: nsm.Spec.JaegerTracing},
 
 								// TODO: Jaeger tracing feature
 								// {Name: "JAEGER_AGENT_HOST", Value: nsm.Spec.JaegerTracing},
@@ -121,7 +128,7 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 								Privileged: &privmode,
 							},
 							Env: []corev1.EnvVar{
-								{Name: "INSECURE", Value: nsm.Spec.Insecure},
+								{Name: "INSECURE", Value: insecure},
 								{Name: "POD_NAME", ValueFrom: &corev1.EnvVarSource{
 									FieldRef: &corev1.ObjectFieldSelector{
 										FieldPath: "metadata.name",
@@ -134,8 +141,8 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 									FieldRef: &corev1.ObjectFieldSelector{
 										FieldPath: "spec.nodeName",
 									}}},
-								{Name: "TRACER_ENABLED", Value: nsm.Spec.JaegerTracing},
 
+								// {Name: "TRACER_ENABLED", Value: nsm.Spec.JaegerTracing},
 								// TODO: Jaeger tracing feature
 								// {Name: "JAEGER_AGENT_HOST", Value: nsm.Spec.JaegerTracing},
 								// {Name: "JAEGER_AGENT_PORT", Value: nsm.Spec.JaegerTracing}
@@ -193,15 +200,24 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 
 func (r *ReconcileNSM) deamonSetForForwardingPlane(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet {
 
-	registry := nsm.Spec.Registry
-	org := nsm.Spec.Org
-	tag := nsm.Spec.Tag
-	pullPolicy := nsm.Spec.PullPolicy
+	registry := nsmRegistry
+	org := nsmOrg
+	tag := nsmVersion
+	pullPolicy := nsmPullPolicy
 	image := nsm.Spec.ForwardingPlaneImage
 	fp := nsm.Spec.ForwardingPlaneName
 	volType := corev1.HostPathDirectoryOrCreate
 	mountPropagationMode := corev1.MountPropagationBidirectional
 	privmode := true
+
+	insecure := "true"
+
+	if nsm.Spec.Insecure {
+		insecure = "true"
+	} else {
+		insecure = "false"
+	}
+
 	daemonset := &appsv1.DaemonSet{
 
 		ObjectMeta: metav1.ObjectMeta{
@@ -211,11 +227,11 @@ func (r *ReconcileNSM) deamonSetForForwardingPlane(nsm *nsmv1alpha1.NSM) *appsv1
 		},
 		Spec: appsv1.DaemonSetSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{"app": "nsm-" + fp + "-plane"},
+				MatchLabels: map[string]string{"app": "nsm-" + fp + "-forwarder"},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": "nsm-" + fp + "-plane"},
+					Labels: map[string]string{"app": "nsm-" + fp + "-forwarder"},
 				},
 				Spec: corev1.PodSpec{
 					HostPID:            true,
@@ -232,9 +248,9 @@ func (r *ReconcileNSM) deamonSetForForwardingPlane(nsm *nsmv1alpha1.NSM) *appsv1
 								Privileged: &privmode,
 							},
 							Env: []corev1.EnvVar{
-								{Name: "INSECURE", Value: nsm.Spec.Insecure},
-								{Name: "TRACER_ENABLED", Value: nsm.Spec.JaegerTracing},
+								{Name: "INSECURE", Value: insecure},
 
+								// {Name: "TRACER_ENABLED", Value: nsm.Spec.JaegerTracing},
 								// TODO: Jaeger tracing feature
 								// {Name: "JAEGER_AGENT_HOST", Value: nsm.Spec.JaegerTracing},
 								// {Name: "JAEGER_AGENT_PORT", Value: nsm.Spec.JaegerTracing}

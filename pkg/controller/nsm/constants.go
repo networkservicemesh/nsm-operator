@@ -1,15 +1,24 @@
 package nsm
 
-import "time"
+import (
+	"time"
+
+	corev1 "k8s.io/api/core/v1"
+)
 
 const (
-	webhookName               = "nsm-admission-webhook"
-	webhookSecretName         = webhookName + "-certs"
-	webhookServiceName        = webhookName + "-svc"
-	webhookServicePort        = 443
-	webhookServiceTargetPort  = 443
-	webhookMutatingConfigName = webhookName + "-cfg"
+	nsmRegistry   = "docker.io"
+	nsmOrg        = "networkservicemesh"
+	nsmVersion    = "v0.2.0"
+	nsmPullPolicy = corev1.PullIfNotPresent
 
+	webhookName                     = "nsm-admission-webhook"
+	webhookSecretName               = webhookName + "-certs"
+	webhookServiceName              = webhookName + "-svc"
+	webhookServicePort              = 443
+	webhookServiceTargetPort        = 443
+	webhookMutatingConfigName       = webhookName + "-cfg"
+	webhookReplicas           int32 = 1
 	// Deployment inputs for liveness and readiness probes to pods
 	probePort         = 5555
 	probeInitialDelay = 10

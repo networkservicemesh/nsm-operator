@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nsm-operator
+  namespace: nsm
 spec:
   replicas: 1
   selector:
@@ -16,7 +17,7 @@ spec:
       containers:
         - name: nsm-operator
           # Replace this with the built image name
-          image: quay.io/acmenezes/nsm-operator:v0.0.2
+          image: quay.io/acmenezes/nsm-operator:v0.0.1
           command:
           - nsm-operator
           imagePullPolicy: Always

@@ -2,27 +2,21 @@ apiVersion: nsm.networkservicemesh.io/v1alpha1
 kind: NSM
 metadata:
   name: nsm
-  namespace: default
+  namespace: nsm
 spec:
-  # repo configs
-  registry: docker.io
-  org: networkservicemesh
-  tag: v0.2.0
-  pullPolicy: IfNotPresent
-
-  # admission webhook configs
-  webhookName: nsm-admission-webhook
-  replicas: 1
-
   # INSECURE env var
-  insecure: "true"
+  insecure: true
 
   # Forwarding Plane Configs
   forwardingPlaneName: vpp
   forwardingPlaneImage: vppagent-forwarder
 
+  # Version field for Openshift UI
+  version: "v0.2.0"
+
   # Enable Spire
-  spire: "false"
+  # spire: "false"
 
   # Enable Jaeger Tracing
-  jaegerTracing: "false"
+  # jaegerTracing: "false"
+
