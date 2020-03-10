@@ -19,18 +19,11 @@ OPERATOR_TAG = v0.0.1
 # Base bundle build dir
 BUNDLE_DOCKERFILE_PATH = deploy/bundle
 
-# Kubernetes Bundle Variables
-BUNDLE_K8S_OUTPUT_PATH = build/_output/kubernetes/bundle
-BUNDLE_K8S_MANIFESTS_PATH = deploy/olm-catalog/kubernetes/nsm-operator
-BUNDLE_K8S_IMAGE = quay.io/acmenezes/nsm-bundle
-BUNDLE_K8S_TAG = v0.0.1
-
-# Openshift Bundle Variables
-BUNDLE_OSP_OUTPUT_PATH = build/_output/openshift/bundle
-BUNDLE_OSP_MANIFESTS_PATH = deploy/olm-catalog/openshift/nsm-operator
-BUNDLE_OSP_IMAGE = quay.io/acmenezes/nsm-bundle
-BUNDLE_OSP_TAG = v0.0.1
-
+# Bundle Variables
+BUNDLE_OUTPUT_PATH = build/_output/openshift/bundle
+BUNDLE_MANIFESTS_PATH = deploy/olm-catalog/openshift/nsm-operator
+BUNDLE_IMAGE = quay.io/acmenezes/nsm-bundle
+BUNDLE_TAG = v0.0.1
 
 # bundle build
 .phony: bundle-build
@@ -40,33 +33,21 @@ bundle-build:
 	rm -rf build/_output/kubernetes
 	rm -rf build/_output/openshift
 
-	# @echo "building kubernetes bundle image..."
-	# @echo ""
-	# mkdir -p ${BUNDLE_K8S_OUTPUT_PATH}/manifests
-	# cp -r ${BUNDLE_DOCKERFILE_PATH}/* ${BUNDLE_K8S_OUTPUT_PATH}
-	# cp -r ${BUNDLE_K8S_MANIFESTS_PATH} ${BUNDLE_K8S_OUTPUT_PATH}/manifests
-	# docker build -t ${BUNDLE_K8S_IMAGE}:${BUNDLE_K8S_TAG} ${BUNDLE_K8S_OUTPUT_PATH}
-
 	@echo "building OpenShift bundle image..."
 	@echo ""
-	mkdir -p ${BUNDLE_OSP_OUTPUT_PATH}/manifests
-	cp -r ${BUNDLE_DOCKERFILE_PATH}/* ${BUNDLE_OSP_OUTPUT_PATH}
-	cp -r ${BUNDLE_OSP_MANIFESTS_PATH} ${BUNDLE_OSP_OUTPUT_PATH}/manifests
-	docker build -t ${BUNDLE_OSP_IMAGE}:${BUNDLE_OSP_TAG} ${BUNDLE_OSP_OUTPUT_PATH}
-
+	mkdir -p ${BUNDLE_OUTPUT_PATH}/manifests
+	cp -r ${BUNDLE_DOCKERFILE_PATH}/* ${BUNDLE_OUTPUT_PATH}
+	cp -r ${BUNDLE_MANIFESTS_PATH} ${BUNDLE_OUTPUT_PATH}/manifests
+	docker build -t ${BUNDLE_IMAGE}:${BUNDLE_TAG} ${BUNDLE_OUTPUT_PATH}
 
 # bundle push
 .phony: bundle-push
 bundle-push:
-	# @echo "pushing kubernetes bundle to "${BUNDLE_K8S_IMAGE}":"${BUNDLE_K8S_TAG}
-	# @echo ""
-	# docker login quay.io/acmenezes
-	# docker push ${BUNDLE_K8S_IMAGE}":"${BUNDLE_K8S_TAG}
 
-	@echo "pushing OpenShift bundle to "${BUNDLE_OSP_IMAGE}":"${BUNDLE_OSP_TAG}
+	@echo "pushing OpenShift bundle to "${BUNDLE_IMAGE}":"${BUNDLE_TAG}
 	@echo ""
 	docker login quay.io/acmenezes
-	docker push ${BUNDLE_OSP_IMAGE}":"${BUNDLE_OSP_TAG}
+	docker push ${BUNDLE_IMAGE}":"${BUNDLE_TAG}
 
 # generate k8s crds 
 .phony: gen-k8s-crds

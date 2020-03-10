@@ -1,9 +1,0 @@
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: nsm-catalog
-spec:
-  sourceType: grpc
-  image: quay.io/acmenezes/nsm-operator-osp-registry:v0.0.1
-  displayName: Network Service Mesh Operators
-  publisher: networkservicemesh.io

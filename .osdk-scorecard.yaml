@@ -1,7 +1,7 @@
 scorecard:
 
   output: json
-  bundle: "deploy/olm-catalog/openshift/nsm-operator/"
+  bundle: "deploy/olm-catalog/nsm-operator/"
   plugins:
     - basic:
         namespace: nsm
@@ -12,4 +12,4 @@ scorecard:
         namespace: nsm
         cr-manifest:
           - "deploy/crds/nsm.networkservicemesh.io_v1alpha1_nsm_cr.yaml"
-        csv-path: "deploy/olm-catalog/openshift/nsm-operator/0.0.1/nsm-operator.v0.0.1.clusterserviceversion.yaml"
+        csv-path: "deploy/olm-catalog/nsm-operator/0.0.1/nsm-operator.v0.0.1.clusterserviceversion.yaml"
