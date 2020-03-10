@@ -12,8 +12,8 @@ spec:
     listKind: NetworkServiceManagerList
     plural: networkservicemanagers
     shortNames:
-      - nsm
-      - nsms
+      - nsmgr
+      - nsmgrs
     singular: networkservicemanager
   scope: Namespaced
   version: v1alpha1

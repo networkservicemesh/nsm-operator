@@ -112,9 +112,6 @@ type ReconcileNSM struct {
 
 // Reconcile reads that state of the cluster for a NSM object and makes changes based on the state read
 // and what is in the NSM.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Pod as an example
-// Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, error) {
@@ -125,13 +122,6 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 	nsm := &nsmv1alpha1.NSM{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, nsm)
 
-	if nsm.Status.Phase == nsmv1alpha1.NSMPhaseInitial {
-		nsm.Status.Phase = nsmv1alpha1.NSMPhaseCreating
-		if updateErr := r.client.Status().Update(context.TODO(), nsm); updateErr != nil {
-			reqLogger.Info("Failed to update status", "Error", err.Error())
-		}
-	}
-
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -141,6 +131,14 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 		}
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
+	}
+
+	// Update the status field to creating
+	if nsm.Status.Phase == nsmv1alpha1.NSMPhaseInitial {
+		nsm.Status.Phase = nsmv1alpha1.NSMPhaseCreating
+		if updateErr := r.client.Status().Update(context.TODO(), nsm); updateErr != nil {
+			reqLogger.Info("Failed to update status", "Error", err.Error())
+		}
 	}
 
 	// reconcile secrets for admission webhook
@@ -260,12 +258,13 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 		return reconcile.Result{}, err
 	}
 
+	// Update Status field after creating all resources
 	if nsm.Status.Phase != nsmv1alpha1.NSMPhaseRunning {
 		nsm.Status.Phase = nsmv1alpha1.NSMPhaseRunning
 		if updateErr := r.client.Status().Update(context.TODO(), nsm); updateErr != nil {
 			reqLogger.Info("Failed to update status", "Error", err.Error())
 		}
 	}
-	// Set NSM instance as the owner and controller
+
 	return reconcile.Result{}, nil
 }

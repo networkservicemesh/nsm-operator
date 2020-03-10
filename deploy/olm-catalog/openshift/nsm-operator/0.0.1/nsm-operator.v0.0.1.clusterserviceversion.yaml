@@ -4,7 +4,7 @@ metadata:
   name: nsm-operator.v0.0.1
   namespace: placeholder
   annotations:
-    alm-examples: '[{"apiVersion":"nsm.networkservicemesh.io/v1alpha1","kind":"NSM","metadata":{"name":"example-nsm","namespace":"default"},"spec":{"forwardingPlaneImage":"vppagent-forwarder","forwardingPlaneName":"vpp","insecure":true,"version":"v0.2.0"}}]'
+    alm-examples: '[{"apiVersion":"nsm.networkservicemesh.io/v1alpha1","kind":"NSM","metadata":{"name":"example-nsm","namespace":"nsm"},"spec":{"forwardingPlaneImage":"vppagent-forwarder","forwardingPlaneName":"vpp","insecure":true,"version":"v0.2.0"}}]'
     categories: Networking
     certified: 'false'
     createdAt: 2020-01-28T10:45:31.000Z
@@ -331,7 +331,7 @@ spec:
                       - name: OPERATOR_NAME
                         value: nsm-operator
                     image: >-
-                      quay.io/acmenezes/nsm-operator@sha256:587d5884ea110b2450a6d0d7fe00c7374907c4cd83f37e729d7eb41e2f168794
+                      quay.io/acmenezes/nsm-operator@sha256:341bad427f91ed300d221335b58c3dc8d3feb0445a63a4091ca010024e12d716
                     imagePullPolicy: Always
                     name: nsm-operator
                     resources:
