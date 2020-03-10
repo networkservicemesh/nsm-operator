@@ -75,7 +75,6 @@ operator-push:
 	docker push ${OPERATOR_IMAGE}":"${OPERATOR_TAG}
 
 
-
 #TODO:
 
 

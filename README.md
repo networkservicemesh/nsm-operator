@@ -53,9 +53,29 @@ To create a new NSM custom resource, after deploying the operator itself, use th
 ```
 kubectl apply -f deploy/crds/nsm.networkservicemesh.io_v1alpha1_nsm_cr.yaml
 ```
-After that we can start to play with network services examples. In order to use the nsm helm repo let's add it to the cluster: `helm repo add nsm https://helm.nsm.dev/`
+Now we shold see something like this:
+```
+oc get pods -n nsm
 
-Then check the nsm [official examples](https://github.com/networkservicemesh/networkservicemesh/blob/master/docs/guide-quickstart.md#run) and the [community examples](https://github.com/networkservicemesh/examples)
+NAME                                    READY   STATUS    RESTARTS   AGE
+nsm-admission-webhook-b54cb4545-spt42   1/1     Running   0          6m58s
+nsm-operator-794d58d4f8-n7tgj           1/1     Running   0          10m
+nsm-vpp-forwarder-bh8nv                 1/1     Running   0          6m57s
+nsm-vpp-forwarder-blrfb                 1/1     Running   0          6m57s
+nsm-vpp-forwarder-mrmgl                 1/1     Running   0          6m57s
+nsmgr-jwrbt                             3/3     Running   0          6m57s
+nsmgr-s5tg2                             3/3     Running   0          6m57s
+nsmgr-xfdf8                             3/3     Running   0          6m57s
+```
+
+| NOTE: nsm operator doesn't support the use of secure mode, aka spire, on Openshift yet. Planned for release 0.0.2. Jaegger tracing option is currently under development for both kubernetes and openshift as well. |
+| --- |
+
+After that, we have the basic network service mesh control plane and forwarding plan in place. That's the moment we can start to play with network services examples. 
+
+First install the nsm helm repo to the cluster: `helm repo add nsm https://helm.nsm.dev/`
+
+Then check the nsm [official examples](https://github.com/networkservicemesh/networkservicemesh/blob/master/docs/guide-quickstart.md#run) and the [community examples](https://github.com/networkservicemesh/examples) and the official instructions as well.
 
 
 ### Contributing

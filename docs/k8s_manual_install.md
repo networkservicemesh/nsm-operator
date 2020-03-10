@@ -39,4 +39,4 @@ And you should see something like below:
 NAME                            READY   STATUS    RESTARTS   AGE
 nsm-operator-6dbfdc8dc5-6fn85   1/1     Running   0          6m5s
 ```
-Once the operator is running we can create a Network Service Mesh instance. To see how to do it and some network services example check the [usage page](usage.md).
+Once the operator is running we can create a Network Service Mesh instance. To see how to do it and some network services example check the [usage section](../README.md#Usage).

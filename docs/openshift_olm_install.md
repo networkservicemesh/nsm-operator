@@ -41,4 +41,4 @@ And finally clicking on the created nsm object and on the Resources tab we can c
 
 <img src="./img/9-nsm-resources.png">
 
-Now to run network services check the examples on the [usage page](usage.md).
+Now to run network services Check the [usage section](../README.md#Usage).

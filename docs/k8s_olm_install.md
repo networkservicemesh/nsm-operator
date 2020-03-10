@@ -99,4 +99,4 @@ NAME                            READY   STATUS    RESTARTS   AGE
 nsm-operator-8588c8dd6c-tsnx7   1/1     Running   0          8m56s
 ```
 
-Now to run network services check the examples on the [usage page](usage.md).
+Now to run network services check the examples on the [usage section](../README.md#Usage).
