@@ -14,10 +14,8 @@ oc project nsm
 
 Now let's apply the RBAC permissions for the operator itself:
 ```
-oc apply -f deploy/cluster_role.yaml
 oc apply -f deploy/role.yaml
 oc apply -f deploy/service_account.yaml
-oc apply -f deploy/cluster_role_binding.yaml
 oc apply -f deploy/role_binding.yaml
 ```
 Once we have the RBAC permissions we need to deploy the NSM custom resource definition:

@@ -1,11 +1,11 @@
-# Network Service Mesh Operator
+## Network Service Mesh Operator
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/acmenezes/nsm-operator "Go Report Card")](https://goreportcard.com/report/github.com/acmenezes/nsm-operator)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code-of-conduct.md) 
 
 A Kubernetes Operator for Installing and Managing Network Service Meshes
 
-## Overview
+#### Overview
 
 The Network Service Mesh Operator is a tool to install and manage the [Network Service Mesh][nsm_home] application which <em> is a novel approach solving complicated L2/L3 use cases in Kubernetes that are tricky to address with the existing Kubernetes Network Model. Inspired by Istio, Network Service Mesh maps the concept of a Service Mesh to L2/L3 payloads as part of an attempt to re-imagine NFV in a Cloud-native way! </em>. To  better understand the network service meshes take a look at [what is nsm][nsm_whatis].
 
@@ -23,7 +23,7 @@ Some of the features intended to be embedded with the operator are
 
 * Auto-pilot functions such as distributing NSM registry into multiple pods according to the size of the cluster among other functions that may be addressed as well via automation.
 
-## Install
+### Install
 
 #### Getting Started
 
@@ -38,25 +38,43 @@ If want to install OLM in a kubernetes cluster you can try the [install guide][o
 #### Install Methods:
 
 [Openshift Embedded Operator Hub][openshift_olm_install]
+
 [Openshift Manual Install][openshift_manual_install]
+
 [Kubernetes OLM Install][k8s_olm_install]
+
 [Kubernetes Manual Install][k8s_manual_Install]
 
 
-## Usage 
+### Usage 
 
 To create a new NSM custom resource, after deploying the operator itself, use the CR manifest below. Here we have an example with the Vector Packet Processing as a forwarding plane for nsm.
 
 ```
 kubectl apply -f deploy/crds/nsm.networkservicemesh.io_v1alpha1_nsm_cr.yaml
 ```
+After that we can start to play with network services examples. In order to use the nsm helm repo let's add it to the cluster: `helm repo add nsm https://helm.nsm.dev/`
 
-## Contributing
+Then check the nsm [official examples](https://github.com/networkservicemesh/networkservicemesh/blob/master/docs/guide-quickstart.md#run) and the [community examples](https://github.com/networkservicemesh/examples)
+
+
+### Contributing
 
 Anyone interested in contributing to the nsm-operator is welcomed and 
 should start by reviewing the [development][docs_dev] documentation.
 
-## License
+For any questions you can reach out to us on the CNCF slack cloud-native.slack.com. Take a look at the channels below and feel free to send me messages using `@alexandre menezes` there.
+
+[![Slack Channel](https://img.shields.io/badge/Slack:-%23nsm%20on%20CNCF%20Slack-blue.svg?style=plastic&logo=slack)](https://cloud-native.slack.com/messages/CHQNNUPN1/)
+
+[![Slack Channel](https://img.shields.io/badge/Slack:-%23nsm--dev%20on%20CNCF%20Slack-blue.svg?style=plastic&logo=slack)](https://cloud-native.slack.com/messages/CHSKJ4849/)
+
+[![Slack Invite](https://img.shields.io/badge/Slack-CNCF%20Slack%20Invite-blue.svg?style=plastic&logo=slack)](https://slack.cncf.io/)
+
+#### CNCF Code of Conduct:
+  * The Network Service Mesh community follows the [CNCF Community Code of Conduct](https://github.com/cncf/foundation/blob/master/code-of-conduct.md).
+
+### License
 
 nsm-operator is released under the Apache 2.0 license. Please check the [LICENSE][license_file] file for details.
 

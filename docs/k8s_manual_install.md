@@ -16,10 +16,8 @@ kubectl config use-context nsm/minikube
 
 Now let's apply the RBAC permissions for the operator itself:
 ```
-kubectl apply -f deploy/cluster_role.yaml
 kubectl apply -f deploy/role.yaml
 kubectl apply -f deploy/service_account.yaml
-kubectl apply -f deploy/cluster_role_binding.yaml
 kubectl apply -f deploy/role_binding.yaml
 ```
 Once we have the RBAC permissions we need to deploy the NSM custom resource definition:
