@@ -106,5 +106,5 @@ nsm-operator is released under the Apache 2.0 license. Please check the [LICENSE
 [olm_install_guide]:https://github.com/operator-framework/operator-lifecycle-manager/blob/master/doc/install/install.md
 [openshift_olm_install]:./docs/openshift_olm_install.md
 [openshift_manual_install]:./docs/openshift_manual_install.md
-[k8s_olm_install]:./docs/k8s_olm_install.yaml
-[k8s_manual_install]:./docs/k8s_manual_install.yaml
+[k8s_olm_install]:./docs/k8s_olm_install.md
+[k8s_manual_install]:./docs/k8s_manual_install.md
