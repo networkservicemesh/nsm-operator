@@ -100,7 +100,7 @@ spec:
     managers and forwarding plane workloads taking the configuration from the
     Custom Resource manifest created specifically to be used with the operator.
     It aims to be platform independed and for such should run well in any
-    kubernetes distribution.
+    kubernetes distribution. 
 
     The only requirement is that you create the nsm namespace for it in your platform.
     For manual installation check instructions on github.com/acmenezes/nsm-operator
