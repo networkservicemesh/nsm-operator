@@ -11,7 +11,7 @@ import (
 
 func (r *ReconcileNSM) secretForWebhook(nsm *nsmv1alpha1.NSM) *corev1.Secret {
 	var k, c bytes.Buffer
-	host := webhookServiceName
+	host := "nsm-admission-webhook-svc.nsm.svc"
 	generateRSACerts(host, true, &k, &c)
 	caCert = c.Bytes()
 	key := k.Bytes()
@@ -26,7 +26,7 @@ func (r *ReconcileNSM) secretForWebhook(nsm *nsmv1alpha1.NSM) *corev1.Secret {
 			corev1.TLSPrivateKeyKey: key,
 		},
 	}
-	// Set NSM instance as the owner and controller	
+	// Set NSM instance as the owner and controller
 	controllerutil.SetControllerReference(nsm, secret, r.scheme)
 	return secret
 }
