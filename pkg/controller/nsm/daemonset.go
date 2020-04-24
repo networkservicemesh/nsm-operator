@@ -48,6 +48,9 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 							Name:            "nsmdp",
 							Image:           registry + "/" + org + "/nsmdp:" + tag,
 							ImagePullPolicy: pullPolicy,
+							SecurityContext: &corev1.SecurityContext{
+								Privileged: &privmode,
+							},
 							Env: []corev1.EnvVar{
 								{Name: "INSECURE", Value: insecure},
 
