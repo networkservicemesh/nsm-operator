@@ -1,4 +1,4 @@
-module github.com/acmenezes/nsm-operator
+module github.com/networkservicemesh/nsm-operator
 
 go 1.13
 

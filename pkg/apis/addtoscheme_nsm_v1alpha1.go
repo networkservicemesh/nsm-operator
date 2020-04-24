@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1"
+	"github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1"
 )
 
 func init() {

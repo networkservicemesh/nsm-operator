@@ -11,9 +11,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 
-	"github.com/acmenezes/nsm-operator/pkg/apis"
-	"github.com/acmenezes/nsm-operator/pkg/controller"
-	"github.com/acmenezes/nsm-operator/version"
+	"github.com/networkservicemesh/nsm-operator/pkg/apis"
+	"github.com/networkservicemesh/nsm-operator/pkg/controller"
+	"github.com/networkservicemesh/nsm-operator/version"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"

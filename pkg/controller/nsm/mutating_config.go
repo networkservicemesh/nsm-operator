@@ -1,7 +1,7 @@
 package nsm
 
 import (
-	nsmv1alpha1 "github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1"
+	nsmv1alpha1 "github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1"
 	admissionregv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"

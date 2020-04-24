@@ -14,7 +14,7 @@ In order to contribute on the nsm operator project make sure you have the minima
 
 #### Project's Page and Contribution Guidelines
 
-At this point we have a great opportunity for people wanting to join the project. You can check the project's board [here](https://github.com/acmenezes/nsm-operator/projects/1). We have quite a lot yet to put in. This is the opportunity to shape the project from the beginning. 
+At this point we have a great opportunity for people wanting to join the project. You can check the project's board [here](https://github.com/networkservicemesh/nsm-operator/projects/1). We have quite a lot yet to put in. This is the opportunity to shape the project from the beginning. 
 
 If you want to develop new features you can submit an Issue and fork the project making a new branch from the development branch and commit changes against that new branch. After that you can submit a PR against your copy of the development branch. We'll review it and merge it if is aligned with the project.
 
