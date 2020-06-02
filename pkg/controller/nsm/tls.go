@@ -36,7 +36,7 @@ func generateRSACerts(host string, isCA bool, keyOut, certOut io.Writer) error {
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			CommonName:   "nsm",
+			CommonName:   "nsm-admission-webhook-svc.nsm.svc",
 			Organization: []string{"networkservicemesh"},
 		},
 		NotBefore: notBefore,
