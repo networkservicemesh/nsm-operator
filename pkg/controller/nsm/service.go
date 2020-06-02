@@ -14,6 +14,8 @@ func (r *ReconcileNSM) serviceForWebhook(nsm *nsmv1alpha1.NSM) *corev1.Service {
 			Name:      webhookServiceName,
 			Namespace: nsm.Namespace,
 			Labels:    labelsForNSMAdmissionWebhook(nsm.Name),
+			// TODO: Solve TLS Certs for OCP - This annotation below is specific to OpenShift and needs to be addressed other way
+			Annotations: map[string]string{"service.beta.openshift.io/serving-cert-secret-name": "nsm-admission-webhook-certs"},
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{

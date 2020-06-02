@@ -53,24 +53,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	//Watch for secondary resource admission webhook deployment
-	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &nsmv1alpha1.NSM{},
-	})
-	if err != nil {
-		return err
-	}
-
-	//Watch for secondary resource admission webhook secret
-	err = c.Watch(&source.Kind{Type: &corev1.Secret{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &nsmv1alpha1.NSM{},
-	})
-	if err != nil {
-		return err
-	}
-
 	//Watch for secondary resource admission webhook service
 	err = c.Watch(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
@@ -80,6 +62,25 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	//Watch for secondary resource admission webhook deployment
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &nsmv1alpha1.NSM{},
+	})
+	if err != nil {
+		return err
+	}
+
+	// // Watch for secondary resource admission webhook secret
+	// err = c.Watch(&source.Kind{Type: &corev1.Secret{}}, &handler.EnqueueRequestForOwner{
+	// 	IsController: true,
+	// 	OwnerType:    &nsmv1alpha1.NSM{},
+	// })
+	// if err != nil {
+	// 	return err
+	// }
+
+	//Watch for the Mutating Webhook Configuration
 	err = c.Watch(&source.Kind{Type: &admissionregv1beta1.MutatingWebhookConfiguration{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &nsmv1alpha1.NSM{},
@@ -109,6 +110,11 @@ type ReconcileNSM struct {
 	client client.Client
 	scheme *runtime.Scheme
 }
+
+// func (r *ReconcileNSM) GetOpenShiftVersion() {
+// 	clusterOperator := &corev1.Service{}
+// 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookServiceName, Namespace: nsm.Namespace}, service)
+// }
 
 // Reconcile reads that state of the cluster for a NSM object and makes changes based on the state read
 // and what is in the NSM.Spec
@@ -141,46 +147,26 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 		}
 	}
 
-	// reconcile secrets for admission webhook
-	secret := &corev1.Secret{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookSecretName, Namespace: nsm.Namespace}, secret)
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new Secret
-		secret := r.secretForWebhook(nsm)
-		reqLogger.Info("Creating a new Secret", "Secret.Namespace", secret.Namespace, "Secret.Name", secret.Name)
-		err = r.client.Create(context.TODO(), secret)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new Secret", "Secret.Namespace", secret.Namespace, "Secret.Name", secret.Name)
-			return reconcile.Result{}, nil
-		}
-		// Secret created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-	} else if err != nil {
-		reqLogger.Error(err, "Failed to get Secret")
-		return reconcile.Result{}, err
-	}
+	// // Reconcile the Admission Webhook Secret Containing the CABundle data
+	// secret := &corev1.Secret{}
+	// err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookSecretName, Namespace: nsm.Namespace}, secret)
+	// if err != nil && errors.IsNotFound(err) {
+	// 	// Define a new Secret
+	// 	secret := r.secretForWebhook(nsm)
+	// 	reqLogger.Info("Creating a new Secret", "Secret.Namespace", secret.Namespace, "Secret.Name", secret.Name)
+	// 	err = r.client.Create(context.TODO(), secret)
+	// 	if err != nil {
+	// 		reqLogger.Error(err, "Failed to create new Secret", "Secret.Namespace", secret.Namespace, "Secret.Name", secret.Name)
+	// 		return reconcile.Result{}, nil
+	// 	}
+	// 	// Secret created successfully - return and requeue
+	// 	return reconcile.Result{Requeue: true}, nil
+	// } else if err != nil {
+	// 	reqLogger.Error(err, "Failed to get Secret")
+	// 	return reconcile.Result{}, err
+	// }
 
-	// reconcile deployment for admission webhook
-	deploy := &appsv1.Deployment{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookName, Namespace: nsm.Namespace}, deploy)
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new deployment
-		deploy := r.deploymentForWebhook(nsm)
-		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", deploy.Namespace, "Deployment.Name", deploy.Name)
-		err = r.client.Create(context.TODO(), deploy)
-		time.Sleep(500 * time.Millisecond)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", deploy.Namespace, "Deployment.Name", deploy.Name)
-			return reconcile.Result{}, err
-		}
-		// Deployment created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-	} else if err != nil {
-		reqLogger.Error(err, "Failed to get Deployment")
-		return reconcile.Result{}, err
-	}
-
-	// reconcile service for admission webhook
+	// Reconcile the Admission Webhook Service
 	service := &corev1.Service{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookServiceName, Namespace: nsm.Namespace}, service)
 	if err != nil && errors.IsNotFound(err) {
@@ -200,7 +186,27 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 		return reconcile.Result{}, err
 	}
 
-	// reconcile mutatingConfig for admission webhook
+	// Reconcile the Admission Webhook Deployment
+	deploy := &appsv1.Deployment{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookName, Namespace: nsm.Namespace}, deploy)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new deployment
+		deploy := r.deploymentForWebhook(nsm)
+		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", deploy.Namespace, "Deployment.Name", deploy.Name)
+		err = r.client.Create(context.TODO(), deploy)
+		time.Sleep(500 * time.Millisecond)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", deploy.Namespace, "Deployment.Name", deploy.Name)
+			return reconcile.Result{}, err
+		}
+		// Deployment created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get Deployment")
+		return reconcile.Result{}, err
+	}
+
+	// Reconcile the Mutating Webhook Configuration Object
 	mutatingConfig := &admissionregv1beta1.MutatingWebhookConfiguration{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookMutatingConfigName}, mutatingConfig)
 	if err != nil && errors.IsNotFound(err) {
@@ -220,7 +226,7 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 		return reconcile.Result{}, err
 	}
 
-	// reconcile daemonset for nsmgr
+	// Reconcile the Network Service Manager
 	daemonsetForNSMGR := &appsv1.DaemonSet{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: "nsmgr", Namespace: nsm.Namespace}, daemonsetForNSMGR)
 	if err != nil && errors.IsNotFound(err) {
@@ -239,7 +245,7 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 		return reconcile.Result{}, err
 	}
 
-	// reconcile daemonset for forwarding plane
+	// Reconcile the Forwarding Plane DaemonSet
 	daemonsetForFP := &appsv1.DaemonSet{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: "nsm-" + nsm.Spec.ForwardingPlaneName + "-forwarder", Namespace: nsm.Namespace}, daemonsetForFP)
 	if err != nil && errors.IsNotFound(err) {
