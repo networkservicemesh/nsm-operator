@@ -11,12 +11,18 @@ func (r *ReconcileNSM) mutatingConfigForWebhook(nsm *nsmv1alpha1.NSM) *admission
 
 	var path string
 	path = "/mutate"
+
+	annotations := map[string]string{}
+	if r.isPlatformOpenShift() {
+		annotations = map[string]string{"service.beta.openshift.io/inject-cabundle": "true"}
+	}
+
 	mutatingConfig := &admissionregv1beta1.MutatingWebhookConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: webhookMutatingConfigName,
 			// TODO: Solve TLS Certs for OCP - This annotation below is specific to OpenShift and needs to be addressed other way
 			// Serving-ca operator injects the secret automatically created.
-			Annotations: map[string]string{"service.beta.openshift.io/inject-cabundle": "true"},
+			Annotations: annotations,
 		},
 		Webhooks: []admissionregv1beta1.MutatingWebhook{
 			{

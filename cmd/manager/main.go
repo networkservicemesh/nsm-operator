@@ -15,6 +15,8 @@ import (
 	"github.com/networkservicemesh/nsm-operator/pkg/controller"
 	"github.com/networkservicemesh/nsm-operator/version"
 
+	configv1 "github.com/openshift/api/config/v1"
+	networkv1 "github.com/openshift/api/network/v1"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
@@ -109,6 +111,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Adding the OpenShift networkv1
+	if err := networkv1.AddToScheme(mgr.GetScheme()); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	// Adding the OpenShift configv1
+	if err := configv1.AddToScheme(mgr.GetScheme()); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
 	// Setup all Controllers
 	if err := controller.AddToManager(mgr); err != nil {
 		log.Error(err, "")

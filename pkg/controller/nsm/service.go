@@ -9,13 +9,21 @@ import (
 )
 
 func (r *ReconcileNSM) serviceForWebhook(nsm *nsmv1alpha1.NSM) *corev1.Service {
+
+	annotations := map[string]string{}
+
+	if r.isPlatformOpenShift() {
+		annotations = map[string]string{"service.beta.openshift.io/serving-cert-secret-name": "nsm-admission-webhook-certs"}
+	}
+
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      webhookServiceName,
 			Namespace: nsm.Namespace,
 			Labels:    labelsForNSMAdmissionWebhook(nsm.Name),
+
 			// TODO: Solve TLS Certs for OCP - This annotation below is specific to OpenShift and needs to be addressed other way
-			Annotations: map[string]string{"service.beta.openshift.io/serving-cert-secret-name": "nsm-admission-webhook-certs"},
+			Annotations: annotations,
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{

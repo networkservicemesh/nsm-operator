@@ -2,6 +2,7 @@ package nsm
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	nsmv1alpha1 "github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1"
@@ -22,11 +23,6 @@ import (
 
 var log = logf.Log.WithName("controller_nsm")
 var caCert []byte
-
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
 
 // Add creates a new NSM Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -71,14 +67,14 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// // Watch for secondary resource admission webhook secret
-	// err = c.Watch(&source.Kind{Type: &corev1.Secret{}}, &handler.EnqueueRequestForOwner{
-	// 	IsController: true,
-	// 	OwnerType:    &nsmv1alpha1.NSM{},
-	// })
-	// if err != nil {
-	// 	return err
-	// }
+	// Watch for secondary resource admission webhook secret
+	err = c.Watch(&source.Kind{Type: &corev1.Secret{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &nsmv1alpha1.NSM{},
+	})
+	if err != nil {
+		return err
+	}
 
 	//Watch for the Mutating Webhook Configuration
 	err = c.Watch(&source.Kind{Type: &admissionregv1beta1.MutatingWebhookConfiguration{}}, &handler.EnqueueRequestForOwner{
@@ -98,6 +94,17 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 	return nil
+
+	// Watch for configmaps - THIS CODE NEEDS WORK OWNER CAN'T SEE OTHER NAMESPACES
+	err = c.Watch(&source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &nsmv1alpha1.NSM{},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+
 }
 
 // blank assignment to verify that ReconcileNSM implements reconcile.Reconciler
@@ -111,16 +118,12 @@ type ReconcileNSM struct {
 	scheme *runtime.Scheme
 }
 
-// func (r *ReconcileNSM) GetOpenShiftVersion() {
-// 	clusterOperator := &corev1.Service{}
-// 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookServiceName, Namespace: nsm.Namespace}, service)
-// }
-
 // Reconcile reads that state of the cluster for a NSM object and makes changes based on the state read
 // and what is in the NSM.Spec
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling NSM")
 
@@ -146,26 +149,44 @@ func (r *ReconcileNSM) Reconcile(request reconcile.Request) (reconcile.Result, e
 			reqLogger.Info("Failed to update status", "Error", err.Error())
 		}
 	}
+	// if it is OpenShift, create the kubeadm configMap with the network prefixes in use
+	if r.isPlatformOpenShift() {
+		cm := &corev1.ConfigMap{}
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: "kubeadm-config", Namespace: "kube-system"}, cm)
+		fmt.Print(err)
+		if err != nil && errors.IsNotFound(err) {
+			cm = r.getNetworkConfigMap()
+			err = r.client.Create(context.TODO(), cm)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create kubeadm ConfigMap", "ConfigMap.Namespace", cm.Namespace, "ConfigMap.Name", cm.Name)
+				return reconcile.Result{}, nil
+			}
+			// ConfigMap created successfully - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		}
+	}
 
-	// // Reconcile the Admission Webhook Secret Containing the CABundle data
-	// secret := &corev1.Secret{}
-	// err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookSecretName, Namespace: nsm.Namespace}, secret)
-	// if err != nil && errors.IsNotFound(err) {
-	// 	// Define a new Secret
-	// 	secret := r.secretForWebhook(nsm)
-	// 	reqLogger.Info("Creating a new Secret", "Secret.Namespace", secret.Namespace, "Secret.Name", secret.Name)
-	// 	err = r.client.Create(context.TODO(), secret)
-	// 	if err != nil {
-	// 		reqLogger.Error(err, "Failed to create new Secret", "Secret.Namespace", secret.Namespace, "Secret.Name", secret.Name)
-	// 		return reconcile.Result{}, nil
-	// 	}
-	// 	// Secret created successfully - return and requeue
-	// 	return reconcile.Result{Requeue: true}, nil
-	// } else if err != nil {
-	// 	reqLogger.Error(err, "Failed to get Secret")
-	// 	return reconcile.Result{}, err
-	// }
-
+	// Reconcile the Admission Webhook Secret Containing the CABundle data if platform is not OpenShift
+	// OpenShift uses the service-ca operator to get the secret
+	if !r.isPlatformOpenShift() {
+		secret := &corev1.Secret{}
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookSecretName, Namespace: nsm.Namespace}, secret)
+		if err != nil && errors.IsNotFound(err) {
+			// Define a new Secret
+			secret := r.secretForWebhook(nsm)
+			reqLogger.Info("Creating a new Secret", "Secret.Namespace", secret.Namespace, "Secret.Name", secret.Name)
+			err = r.client.Create(context.TODO(), secret)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Secret", "Secret.Namespace", secret.Namespace, "Secret.Name", secret.Name)
+				return reconcile.Result{}, nil
+			}
+			// Secret created successfully - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		} else if err != nil {
+			reqLogger.Error(err, "Failed to get Secret")
+			return reconcile.Result{}, err
+		}
+	}
 	// Reconcile the Admission Webhook Service
 	service := &corev1.Service{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: webhookServiceName, Namespace: nsm.Namespace}, service)

@@ -9,7 +9,7 @@ import (
 const (
 	nsmRegistry   = "docker.io"
 	nsmOrg        = "networkservicemesh"
-	nsmVersion    = "v0.2.0"
+	nsmVersion    = "latest"
 	nsmPullPolicy = corev1.PullIfNotPresent
 
 	webhookName                     = "nsm-admission-webhook"

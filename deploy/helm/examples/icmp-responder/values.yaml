@@ -5,7 +5,7 @@
 
 registry: docker.io
 org: networkservicemesh
-tag: v0.2.0
+tag: latest
 pullPolicy: IfNotPresent
 
 global:
