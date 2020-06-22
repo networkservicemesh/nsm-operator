@@ -17,10 +17,9 @@ func (r *ReconcileNSM) isPlatformOpenShift() bool {
 	infra := &configv1.Infrastructure{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Name: "cluster", Namespace: ""}, infra)
 	if err != nil || errors.IsNotFound(err) {
-		log.Info("Network object not found. This platform is probably not OpenShift")
+		// log.Info("Network object not found. This platform is probably not OpenShift")
 		return false
 	}
-	// fmt.Println(infra.APIVersion)
 	return true
 }
 
@@ -28,6 +27,7 @@ func (r *ReconcileNSM) isPlatformOpenShift() bool {
 // workaround NSMs way to capture network information
 // TODO: This should be replaced by a pkg with the proper way to retrieve this information in the future
 // Probably only using the Network CRD in the canonical OpenShfit API
+// May demand changes in the NSM application itself
 func (r *ReconcileNSM) getNetworkConfigMap() *corev1.ConfigMap { //*configMapData {
 
 	// get OpenShift Networks
