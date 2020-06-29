@@ -18,7 +18,7 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 	volType := corev1.HostPathDirectoryOrCreate
 	privmode := true
 	insecure := "true"
-	// tracerEnabled := "false"
+	tracerEnabled := "false"
 
 	if nsm.Spec.Insecure {
 		insecure = "true"
@@ -54,7 +54,7 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 							},
 							Env: []corev1.EnvVar{
 								{Name: "INSECURE", Value: insecure},
-								// {Name: "TRACER_ENABLED", Value: tracerEnabled},
+								{Name: "TRACER_ENABLED", Value: tracerEnabled},
 								// TODO: Jaeger tracing feature
 								// {Name: "JAEGER_AGENT_HOST", Value: nsm.Spec.JaegerTracing},
 								// {Name: "JAEGER_AGENT_PORT", Value: nsm.Spec.JaegerTracing}
@@ -82,7 +82,7 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 							},
 							Env: []corev1.EnvVar{
 								{Name: "INSECURE", Value: insecure},
-								// {Name: "TRACER_ENABLED", Value: tracerEnabled},
+								{Name: "TRACER_ENABLED", Value: tracerEnabled},
 
 								// TODO: Jaeger tracing feature
 								// {Name: "JAEGER_AGENT_HOST", Value: nsm.Spec.JaegerTracing},
@@ -144,7 +144,7 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 									FieldRef: &corev1.ObjectFieldSelector{
 										FieldPath: "spec.nodeName",
 									}}},
-								// {Name: "TRACER_ENABLED", Value: tracerEnabled},
+								{Name: "TRACER_ENABLED", Value: tracerEnabled},
 								// TODO: Jaeger tracing feature
 								// {Name: "JAEGER_AGENT_HOST", Value: nsm.Spec.JaegerTracing},
 								// {Name: "JAEGER_AGENT_PORT", Value: nsm.Spec.JaegerTracing}
