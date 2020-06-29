@@ -1,6 +1,6 @@
 ## Network Service Mesh Operator
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/acmenezes/nsm-operator "Go Report Card")](https://goreportcard.com/report/github.com/acmenezes/nsm-operator)
+[![Go Report Card](https://goreportcard.com/badge/github.com/networkservicemesh/nsm-operator "Go Report Card")](https://goreportcard.com/report/github.com/networkservicemesh/nsm-operator)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code-of-conduct.md) 
 
 A Kubernetes Operator for Installing and Managing Network Service Meshes

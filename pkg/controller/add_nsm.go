@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/acmenezes/nsm-operator/pkg/controller/nsm"
+	"github.com/networkservicemesh/nsm-operator/pkg/controller/nsm"
 )
 
 func init() {

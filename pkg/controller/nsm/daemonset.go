@@ -1,7 +1,7 @@
 package nsm
 
 import (
-	nsmv1alpha1 "github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1"
+	nsmv1alpha1 "github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,6 +18,7 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 	volType := corev1.HostPathDirectoryOrCreate
 	privmode := true
 	insecure := "true"
+	tracerEnabled := "false"
 
 	if nsm.Spec.Insecure {
 		insecure = "true"
@@ -48,10 +49,12 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 							Name:            "nsmdp",
 							Image:           registry + "/" + org + "/nsmdp:" + tag,
 							ImagePullPolicy: pullPolicy,
+							SecurityContext: &corev1.SecurityContext{
+								Privileged: &privmode,
+							},
 							Env: []corev1.EnvVar{
 								{Name: "INSECURE", Value: insecure},
-
-								// {Name: "TRACER_ENABLED", Value: nsm.Spec.JaegerTracing},
+								{Name: "TRACER_ENABLED", Value: tracerEnabled},
 								// TODO: Jaeger tracing feature
 								// {Name: "JAEGER_AGENT_HOST", Value: nsm.Spec.JaegerTracing},
 								// {Name: "JAEGER_AGENT_PORT", Value: nsm.Spec.JaegerTracing}
@@ -79,7 +82,7 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 							},
 							Env: []corev1.EnvVar{
 								{Name: "INSECURE", Value: insecure},
-								// {Name: "TRACER_ENABLED", Value: nsm.Spec.JaegerTracing},
+								{Name: "TRACER_ENABLED", Value: tracerEnabled},
 
 								// TODO: Jaeger tracing feature
 								// {Name: "JAEGER_AGENT_HOST", Value: nsm.Spec.JaegerTracing},
@@ -141,8 +144,7 @@ func (r *ReconcileNSM) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet
 									FieldRef: &corev1.ObjectFieldSelector{
 										FieldPath: "spec.nodeName",
 									}}},
-
-								// {Name: "TRACER_ENABLED", Value: nsm.Spec.JaegerTracing},
+								{Name: "TRACER_ENABLED", Value: tracerEnabled},
 								// TODO: Jaeger tracing feature
 								// {Name: "JAEGER_AGENT_HOST", Value: nsm.Spec.JaegerTracing},
 								// {Name: "JAEGER_AGENT_PORT", Value: nsm.Spec.JaegerTracing}

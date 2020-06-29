@@ -1,7 +1,7 @@
 package nsm
 
 import (
-	nsmv1alpha1 "github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1"
+	nsmv1alpha1 "github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,7 +12,7 @@ import (
 func (r *ReconcileNSM) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deployment {
 	ls := labelsForNSMAdmissionWebhook(nsm.Name)
 	replicas := webhookReplicas
-	registry := nsmRegistry
+	// registry := nsmRegistry
 	org := nsmOrg
 	tag := nsmVersion
 	webhookPullPolicy := nsmPullPolicy
@@ -35,8 +35,9 @@ func (r *ReconcileNSM) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deploy
 				Spec: corev1.PodSpec{
 					ServiceAccountName: "nsm-webhook-acc",
 					Containers: []corev1.Container{{
-						Name:            webhookName,
-						Image:           registry + "/" + org + "/admission-webhook:" + tag,
+						Name:  webhookName,
+						Image: "quay.io/acmenezes/admission-webhook:v0.0.11",
+						// Image:           registry + "/" + org + "/admission-webhook:" + tag,
 						ImagePullPolicy: webhookPullPolicy,
 						// SecurityContext: &corev1.SecurityContext{
 						// 	Capabilities: &corev1.Capabilities{
@@ -54,7 +55,6 @@ func (r *ReconcileNSM) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deploy
 								MountPath: "/etc/webhook/certs",
 								ReadOnly:  true},
 						},
-
 						LivenessProbe: &corev1.Probe{
 							Handler: corev1.Handler{
 								HTTPGet: &corev1.HTTPGetAction{

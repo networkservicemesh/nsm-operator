@@ -1,7 +1,7 @@
 package nsm
 
 import (
-	nsmv1alpha1 "github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1"
+	nsmv1alpha1 "github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1"
 	admissionregv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -11,9 +11,18 @@ func (r *ReconcileNSM) mutatingConfigForWebhook(nsm *nsmv1alpha1.NSM) *admission
 
 	var path string
 	path = "/mutate"
+
+	annotations := map[string]string{}
+	if r.isPlatformOpenShift() {
+		annotations = map[string]string{"service.beta.openshift.io/inject-cabundle": "true"}
+	}
+
 	mutatingConfig := &admissionregv1beta1.MutatingWebhookConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: webhookMutatingConfigName,
+			// TODO: Solve TLS Certs for OCP - This annotation below is specific to OpenShift and needs to be addressed other way
+			// Serving-ca operator injects the secret automatically created.
+			Annotations: annotations,
 		},
 		Webhooks: []admissionregv1beta1.MutatingWebhook{
 			{

@@ -12,7 +12,7 @@ spec:
   forwardingPlaneImage: vppagent-forwarder
 
   # Version field for Openshift UI
-  version: "v0.2.0"
+  version: "latest"
 
   # Enable Spire
   # spire: "false"

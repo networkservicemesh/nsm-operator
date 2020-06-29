@@ -11,9 +11,9 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1.NSM":       schema_pkg_apis_nsm_v1alpha1_NSM(ref),
-		"github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1.NSMSpec":   schema_pkg_apis_nsm_v1alpha1_NSMSpec(ref),
-		"github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1.NSMStatus": schema_pkg_apis_nsm_v1alpha1_NSMStatus(ref),
+		"github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1.NSM":       schema_pkg_apis_nsm_v1alpha1_NSM(ref),
+		"github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1.NSMSpec":   schema_pkg_apis_nsm_v1alpha1_NSMSpec(ref),
+		"github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1.NSMStatus": schema_pkg_apis_nsm_v1alpha1_NSMStatus(ref),
 	}
 }
 
@@ -45,19 +45,19 @@ func schema_pkg_apis_nsm_v1alpha1_NSM(ref common.ReferenceCallback) common.OpenA
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1.NSMSpec"),
+							Ref: ref("github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1.NSMSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1.NSMStatus"),
+							Ref: ref("github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1.NSMStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1.NSMSpec", "github.com/acmenezes/nsm-operator/pkg/apis/nsm/v1alpha1.NSMStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1.NSMSpec", "github.com/networkservicemesh/nsm-operator/pkg/apis/nsm/v1alpha1.NSMStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
