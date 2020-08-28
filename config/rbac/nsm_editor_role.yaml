@@ -1,0 +1,24 @@
+# permissions for end users to edit nsms.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nsm-editor-role
+rules:
+- apiGroups:
+  - nsm.networkservicemesh.io
+  resources:
+  - nsms
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nsm.networkservicemesh.io
+  resources:
+  - nsms/status
+  verbs:
+  - get

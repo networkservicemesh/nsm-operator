@@ -1,0 +1,20 @@
+# permissions for end users to view nsms.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nsm-viewer-role
+rules:
+- apiGroups:
+  - nsm.networkservicemesh.io
+  resources:
+  - nsms
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - nsm.networkservicemesh.io
+  resources:
+  - nsms/status
+  verbs:
+  - get
