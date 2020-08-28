@@ -1,7 +1,6 @@
 domain: networkservicemesh.io
 layout: go.kubebuilder.io/v2
 projectName: nsm-operator
-repo: https://github.com/networkservicemesh/nsm-operator
 multigroup: true
 version: 3-alpha
 plugins:
