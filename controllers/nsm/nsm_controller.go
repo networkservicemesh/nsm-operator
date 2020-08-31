@@ -19,16 +19,28 @@ package controllers
 import (
 	"context"
 
+	"fmt"
+	"time"
+
 	"github.com/go-logr/logr"
+	admissionregv1beta1 "k8s.io/api/admissionregistration/v1beta1"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	nsmv1alpha1 "github.com/networkservicemesh/nsm-operator/apis/nsm/v1alpha1"
 )
 
-// NSMReconciler reconciles a NSM object
-type NSMReconciler struct {
+// caCert variable holds the TLS Certificates to the mutatingWebhookConfiguration
+var caCert []byte
+
+// NsmReconciler reconciles a Nsm object
+type NsmReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
@@ -37,17 +49,189 @@ type NSMReconciler struct {
 // +kubebuilder:rbac:groups=nsm.networkservicemesh.io,resources=nsms,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=nsm.networkservicemesh.io,resources=nsms/status,verbs=get;update;patch
 
-func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+// Reconcile for Nsms
+func (r *NsmReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
-	_ = r.Log.WithValues("nsm", req.NamespacedName)
+	reqLogger := r.Log.WithValues("nsm", req.NamespacedName)
 
-	// your logic here
+	// Fetch the Nsm instance
+	nsm := &nsmv1alpha1.Nsm{}
+	err := r.Client.Get(context.TODO(), req.NamespacedName, nsm)
+
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// Request object not found, could have been deleted after reconcile request.
+			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+			// Return and don't requeue
+			return reconcile.Result{}, nil
+		}
+		// Error reading the object - requeue the request.
+		return reconcile.Result{}, err
+	}
+
+	// Update the status field to creating
+	if nsm.Status.Phase == nsmv1alpha1.NsmPhaseInitial {
+		nsm.Status.Phase = nsmv1alpha1.NsmPhaseCreating
+		if updateErr := r.Client.Status().Update(context.TODO(), nsm); updateErr != nil {
+			reqLogger.Info("Failed to update status", "Error", err.Error())
+		}
+	}
+	// if it is OpenShift, create the kubeadm configMap with the network prefixes in use
+	if r.isPlatformOpenShift() {
+		cm := &corev1.ConfigMap{}
+		err = r.Client.Get(context.TODO(), types.NamespacedName{Name: "kubeadm-config", Namespace: "kube-system"}, cm)
+		fmt.Print(err)
+		if err != nil && errors.IsNotFound(err) {
+			cm = r.getNetworkConfigMap()
+			err = r.Client.Create(context.TODO(), cm)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create kubeadm ConfigMap", "ConfigMap.Namespace", cm.Namespace, "ConfigMap.Name", cm.Name)
+				return reconcile.Result{}, nil
+			}
+			// ConfigMap created successfully - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		}
+	}
+
+	// Reconcile the Admission Webhook Secret Containing the CABundle data if platform is not OpenShift
+	// OpenShift uses the service-ca operator to get the secret
+	if !r.isPlatformOpenShift() {
+		secret := &corev1.Secret{}
+		err = r.Client.Get(context.TODO(), types.NamespacedName{Name: webhookSecretName, Namespace: nsm.Namespace}, secret)
+		if err != nil && errors.IsNotFound(err) {
+			// Define a new Secret
+			secret := r.secretForWebhook(nsm)
+			reqLogger.Info("Creating a new Secret", "Secret.Namespace", secret.Namespace, "Secret.Name", secret.Name)
+			err = r.Client.Create(context.TODO(), secret)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Secret", "Secret.Namespace", secret.Namespace, "Secret.Name", secret.Name)
+				return reconcile.Result{}, nil
+			}
+			// Secret created successfully - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		} else if err != nil {
+			reqLogger.Error(err, "Failed to get Secret")
+			return reconcile.Result{}, err
+		}
+	}
+	// Reconcile the Admission Webhook Service
+	service := &corev1.Service{}
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: webhookServiceName, Namespace: nsm.Namespace}, service)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new service
+		service := r.serviceForWebhook(nsm)
+		reqLogger.Info("Creating a new service", "Service.Namespace", service.Namespace, "Service.Name", service.Name)
+		err = r.Client.Create(context.TODO(), service)
+		time.Sleep(500 * time.Millisecond)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new service", "Service.Namespace", service.Namespace, "Service.Name", service.Name)
+			return reconcile.Result{}, err
+		}
+		// service created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get service")
+		return reconcile.Result{}, err
+	}
+
+	// Reconcile the Admission Webhook Deployment
+	deploy := &appsv1.Deployment{}
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: webhookName, Namespace: nsm.Namespace}, deploy)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new deployment
+		deploy := r.deploymentForWebhook(nsm)
+		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", deploy.Namespace, "Deployment.Name", deploy.Name)
+		err = r.Client.Create(context.TODO(), deploy)
+		time.Sleep(500 * time.Millisecond)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", deploy.Namespace, "Deployment.Name", deploy.Name)
+			return reconcile.Result{}, err
+		}
+		// Deployment created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get Deployment")
+		return reconcile.Result{}, err
+	}
+
+	// Reconcile the Mutating Webhook Configuration Object
+	mutatingConfig := &admissionregv1beta1.MutatingWebhookConfiguration{}
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: webhookMutatingConfigName}, mutatingConfig)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new mutatingConfig
+		mutatingConfig := r.mutatingConfigForWebhook(nsm)
+		reqLogger.Info("Creating a new mutatingConfig", "MutatingConfig.Namespace", mutatingConfig.Namespace, "MutatingConfig.Name", mutatingConfig.Name)
+		err = r.Client.Create(context.TODO(), mutatingConfig)
+
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new mutatingConfig", "MutatingConfig.Namespace", mutatingConfig.Namespace, "MutatingConfig.Name", mutatingConfig.Name)
+			return reconcile.Result{}, err
+		}
+		// mutatingConfig created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get mutatingConfig")
+		return reconcile.Result{}, err
+	}
+
+	// Reconcile the Network Service Manager
+	daemonsetForNsmGR := &appsv1.DaemonSet{}
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: "nsmgr", Namespace: nsm.Namespace}, daemonsetForNsmGR)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new daemonsetForNsmGR
+		daemonsetForNsmGR := r.deamonSetForNsmGR(nsm)
+		reqLogger.Info("Creating a new daemonsetForNsmGR", "Daemonset.Namespace", daemonsetForNsmGR.Namespace, "Daemonset.Name", daemonsetForNsmGR.Name)
+		err = r.Client.Create(context.TODO(), daemonsetForNsmGR)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new daemonsetForNsmGR", "Daemonset.Namespace", daemonsetForNsmGR.Namespace, "Daemonset.Name", daemonsetForNsmGR.Name)
+			return reconcile.Result{}, err
+		}
+		// daemonsetForNsmGR created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get daemonsetForNsmGR")
+		return reconcile.Result{}, err
+	}
+
+	// Reconcile the Forwarding Plane DaemonSet
+	daemonsetForFP := &appsv1.DaemonSet{}
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: "nsm-" + nsm.Spec.ForwardingPlaneName + "-forwarder", Namespace: nsm.Namespace}, daemonsetForFP)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new daemonsetForFP
+		daemonsetForFP := r.deamonSetForForwardingPlane(nsm)
+		reqLogger.Info("Creating a new daemonsetForFP", "Daemonset.Namespace", daemonsetForFP.Namespace, "Daemonset.Name", daemonsetForFP.Name)
+		err = r.Client.Create(context.TODO(), daemonsetForFP)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new daemonsetForFP", "Daemonset.Namespace", daemonsetForFP.Namespace, "Daemonset.Name", daemonsetForFP.Name)
+			return reconcile.Result{}, err
+		}
+		// daemonsetForFP created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get daemonsetForFP")
+		return reconcile.Result{}, err
+	}
+
+	// Update Status field after creating all resources
+	if nsm.Status.Phase != nsmv1alpha1.NsmPhaseRunning {
+		nsm.Status.Phase = nsmv1alpha1.NsmPhaseRunning
+		if updateErr := r.Client.Status().Update(context.TODO(), nsm); updateErr != nil {
+			reqLogger.Info("Failed to update status", "Error", err.Error())
+		}
+	}
 
 	return ctrl.Result{}, nil
 }
 
-func (r *NSMReconciler) SetupWithManager(mgr ctrl.Manager) error {
+// SetupWithManager registers the controlller with the manager and adds the owned resource types
+func (r *NsmReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&nsmv1alpha1.NSM{}).
+		For(&nsmv1alpha1.Nsm{}).
+		Owns(&corev1.Service{}).
+		Owns(&appsv1.Deployment{}).
+		Owns(&corev1.Secret{}).
+		Owns(&admissionregv1beta1.MutatingWebhookConfiguration{}).
+		Owns(&appsv1.DaemonSet{}).
+		Owns(&corev1.ConfigMap{}).
 		Complete(r)
 }
