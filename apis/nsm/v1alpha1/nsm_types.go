@@ -28,14 +28,43 @@ type NSMSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of NSM. Edit NSM_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// nsmgr configs true or false
+	Insecure bool `json:"insecure"`
+
+	// Forwarding plane configs
+	ForwardingPlaneName  string `json:"forwardingPlaneName"`
+	ForwardingPlaneImage string `json:"forwardingPlaneImage"`
+
+	// Version field for reference on Openshift UI
+	Version string `json:"version"`
+
+	// Enable Spire true or false - for future release
+	// Spire bool `json:"spire"`
+
+	// Enable Tracing true or false
+	// JaegerTracing bool `json:"jaegerTracing"`
+
 }
+
+// NSMPhase is the type for the operator phases
+type NSMPhase string
+
+// Operator phases
+const (
+	NSMPhaseInitial     NSMPhase = ""
+	NSMPhasePending     NSMPhase = "Pending"
+	NSMPhaseCreating    NSMPhase = "Creating"
+	NSMPhaseRunning     NSMPhase = "Running"
+	NSMPhaseTerminating NSMPhase = "Terminating"
+)
 
 // NSMStatus defines the observed state of NSM
 type NSMStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// Operator phases during deployment
+	Phase NSMPhase `json:"phase"`
 }
 
 // +kubebuilder:object:root=true

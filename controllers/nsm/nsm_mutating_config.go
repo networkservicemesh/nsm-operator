@@ -7,7 +7,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *NsmReconciler) mutatingConfigForWebhook(nsm *nsmv1alpha1.Nsm) *admissionregv1beta1.MutatingWebhookConfiguration {
+func (r *NSMReconciler) mutatingConfigForWebhook(nsm *nsmv1alpha1.NSM) *admissionregv1beta1.MutatingWebhookConfiguration {
 
 	var path string
 	path = "/mutate"
@@ -49,7 +49,7 @@ func (r *NsmReconciler) mutatingConfigForWebhook(nsm *nsmv1alpha1.Nsm) *admissio
 			},
 		},
 	}
-	// Set Nsm instance as the owner and controller
+	// Set NSM instance as the owner and controller
 	controllerutil.SetControllerReference(nsm, mutatingConfig, r.Scheme)
 	return mutatingConfig
 }

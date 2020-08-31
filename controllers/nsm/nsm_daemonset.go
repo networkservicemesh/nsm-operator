@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *NsmReconciler) deamonSetForNsmGR(nsm *nsmv1alpha1.Nsm) *appsv1.DaemonSet {
+func (r *NSMReconciler) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet {
 
 	registry := nsmRegistry
 	org := nsmOrg
@@ -195,12 +195,12 @@ func (r *NsmReconciler) deamonSetForNsmGR(nsm *nsmv1alpha1.Nsm) *appsv1.DaemonSe
 		},
 	}
 
-	// Set Nsm instance as the owner and controller
+	// Set NSM instance as the owner and controller
 	controllerutil.SetControllerReference(nsm, daemonset, r.Scheme)
 	return daemonset
 }
 
-func (r *NsmReconciler) deamonSetForForwardingPlane(nsm *nsmv1alpha1.Nsm) *appsv1.DaemonSet {
+func (r *NSMReconciler) deamonSetForForwardingPlane(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet {
 
 	registry := nsmRegistry
 	org := nsmOrg
@@ -256,7 +256,7 @@ func (r *NsmReconciler) deamonSetForForwardingPlane(nsm *nsmv1alpha1.Nsm) *appsv
 								// TODO: Jaeger tracing feature
 								// {Name: "JAEGER_AGENT_HOST", Value: nsm.Spec.JaegerTracing},
 								// {Name: "JAEGER_AGENT_PORT", Value: nsm.Spec.JaegerTracing}
-								{Name: "Nsm_FORWARDER_SRC_IP", ValueFrom: &corev1.EnvVarSource{
+								{Name: "NSM_FORWARDER_SRC_IP", ValueFrom: &corev1.EnvVarSource{
 									FieldRef: &corev1.ObjectFieldSelector{
 										FieldPath: "status.podIP",
 									}}},
@@ -316,7 +316,7 @@ func (r *NsmReconciler) deamonSetForForwardingPlane(nsm *nsmv1alpha1.Nsm) *appsv
 		},
 	}
 
-	// Set Nsm instance as the owner and controller
+	// Set NSM instance as the owner and controller
 	controllerutil.SetControllerReference(nsm, daemonset, r.Scheme)
 	return daemonset
 }

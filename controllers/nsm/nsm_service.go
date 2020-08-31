@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *NsmReconciler) serviceForWebhook(nsm *nsmv1alpha1.Nsm) *corev1.Service {
+func (r *NSMReconciler) serviceForWebhook(nsm *nsmv1alpha1.NSM) *corev1.Service {
 
 	annotations := map[string]string{}
 
@@ -20,7 +20,7 @@ func (r *NsmReconciler) serviceForWebhook(nsm *nsmv1alpha1.Nsm) *corev1.Service 
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      webhookServiceName,
 			Namespace: nsm.Namespace,
-			Labels:    labelsForNsmAdmissionWebhook(nsm.Name),
+			Labels:    labelsForNSMAdmissionWebhook(nsm.Name),
 
 			// TODO: Solve TLS Certs for OCP - This annotation below is specific to OpenShift and needs to be addressed other way
 			Annotations: annotations,

@@ -30,6 +30,6 @@ const (
 	validFor = 365 * 24 * time.Hour
 )
 
-func labelsForNsmAdmissionWebhook(crName string) map[string]string {
+func labelsForNSMAdmissionWebhook(crName string) map[string]string {
 	return map[string]string{"app": webhookName, "nsm-cr": crName}
 }

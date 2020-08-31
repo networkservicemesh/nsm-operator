@@ -39,8 +39,8 @@ import (
 // caCert variable holds the TLS Certificates to the mutatingWebhookConfiguration
 var caCert []byte
 
-// NsmReconciler reconciles a Nsm object
-type NsmReconciler struct {
+// NSMReconciler reconciles a NSM object
+type NSMReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
@@ -49,13 +49,13 @@ type NsmReconciler struct {
 // +kubebuilder:rbac:groups=nsm.networkservicemesh.io,resources=nsms,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=nsm.networkservicemesh.io,resources=nsms/status,verbs=get;update;patch
 
-// Reconcile for Nsms
-func (r *NsmReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+// Reconcile for NSMs
+func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
 	reqLogger := r.Log.WithValues("nsm", req.NamespacedName)
 
-	// Fetch the Nsm instance
-	nsm := &nsmv1alpha1.Nsm{}
+	// Fetch the NSM instance
+	nsm := &nsmv1alpha1.NSM{}
 	err := r.Client.Get(context.TODO(), req.NamespacedName, nsm)
 
 	if err != nil {
@@ -70,8 +70,8 @@ func (r *NsmReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Update the status field to creating
-	if nsm.Status.Phase == nsmv1alpha1.NsmPhaseInitial {
-		nsm.Status.Phase = nsmv1alpha1.NsmPhaseCreating
+	if nsm.Status.Phase == nsmv1alpha1.NSMPhaseInitial {
+		nsm.Status.Phase = nsmv1alpha1.NSMPhaseCreating
 		if updateErr := r.Client.Status().Update(context.TODO(), nsm); updateErr != nil {
 			reqLogger.Info("Failed to update status", "Error", err.Error())
 		}
@@ -175,21 +175,21 @@ func (r *NsmReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Reconcile the Network Service Manager
-	daemonsetForNsmGR := &appsv1.DaemonSet{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: "nsmgr", Namespace: nsm.Namespace}, daemonsetForNsmGR)
+	daemonsetForNSMGR := &appsv1.DaemonSet{}
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: "nsmgr", Namespace: nsm.Namespace}, daemonsetForNSMGR)
 	if err != nil && errors.IsNotFound(err) {
-		// Define a new daemonsetForNsmGR
-		daemonsetForNsmGR := r.deamonSetForNsmGR(nsm)
-		reqLogger.Info("Creating a new daemonsetForNsmGR", "Daemonset.Namespace", daemonsetForNsmGR.Namespace, "Daemonset.Name", daemonsetForNsmGR.Name)
-		err = r.Client.Create(context.TODO(), daemonsetForNsmGR)
+		// Define a new daemonsetForNSMGR
+		daemonsetForNSMGR := r.deamonSetForNSMGR(nsm)
+		reqLogger.Info("Creating a new daemonsetForNSMGR", "Daemonset.Namespace", daemonsetForNSMGR.Namespace, "Daemonset.Name", daemonsetForNSMGR.Name)
+		err = r.Client.Create(context.TODO(), daemonsetForNSMGR)
 		if err != nil {
-			reqLogger.Error(err, "Failed to create new daemonsetForNsmGR", "Daemonset.Namespace", daemonsetForNsmGR.Namespace, "Daemonset.Name", daemonsetForNsmGR.Name)
+			reqLogger.Error(err, "Failed to create new daemonsetForNSMGR", "Daemonset.Namespace", daemonsetForNSMGR.Namespace, "Daemonset.Name", daemonsetForNSMGR.Name)
 			return reconcile.Result{}, err
 		}
-		// daemonsetForNsmGR created successfully - return and requeue
+		// daemonsetForNSMGR created successfully - return and requeue
 		return reconcile.Result{Requeue: true}, nil
 	} else if err != nil {
-		reqLogger.Error(err, "Failed to get daemonsetForNsmGR")
+		reqLogger.Error(err, "Failed to get daemonsetForNSMGR")
 		return reconcile.Result{}, err
 	}
 
@@ -213,8 +213,8 @@ func (r *NsmReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Update Status field after creating all resources
-	if nsm.Status.Phase != nsmv1alpha1.NsmPhaseRunning {
-		nsm.Status.Phase = nsmv1alpha1.NsmPhaseRunning
+	if nsm.Status.Phase != nsmv1alpha1.NSMPhaseRunning {
+		nsm.Status.Phase = nsmv1alpha1.NSMPhaseRunning
 		if updateErr := r.Client.Status().Update(context.TODO(), nsm); updateErr != nil {
 			reqLogger.Info("Failed to update status", "Error", err.Error())
 		}
@@ -224,9 +224,9 @@ func (r *NsmReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 }
 
 // SetupWithManager registers the controlller with the manager and adds the owned resource types
-func (r *NsmReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *NSMReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&nsmv1alpha1.Nsm{}).
+		For(&nsmv1alpha1.NSM{}).
 		Owns(&corev1.Service{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Secret{}).

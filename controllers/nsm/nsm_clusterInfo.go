@@ -14,7 +14,7 @@ import (
 type configMapData map[string]string
 
 // Checks if cluster is OpenShift
-func (r *NsmReconciler) isPlatformOpenShift() bool {
+func (r *NSMReconciler) isPlatformOpenShift() bool {
 	infra := &configv1.Infrastructure{}
 	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: "cluster", Namespace: ""}, infra)
 	if err != nil || errors.IsNotFound(err) {
@@ -25,11 +25,11 @@ func (r *NsmReconciler) isPlatformOpenShift() bool {
 }
 
 // Get cluster subnets and recreate kubeadm config map for Openshift
-// workaround Nsms way to capture network information
+// workaround NSMs way to capture network information
 // TODO: This should be replaced by a pkg with the proper way to retrieve this information in the future
 // Probably only using the Network CRD in the canonical OpenShfit API
-// May demand changes in the Nsm application itself
-func (r *NsmReconciler) getNetworkConfigMap() *corev1.ConfigMap { //*configMapData {
+// May demand changes in the NSM application itself
+func (r *NSMReconciler) getNetworkConfigMap() *corev1.ConfigMap { //*configMapData {
 
 	// get OpenShift Networks
 	var clusterNetworkCIDRs []string

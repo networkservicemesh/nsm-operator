@@ -9,8 +9,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *NsmReconciler) deploymentForWebhook(nsm *nsmv1alpha1.Nsm) *appsv1.Deployment {
-	ls := labelsForNsmAdmissionWebhook(nsm.Name)
+func (r *NSMReconciler) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deployment {
+	ls := labelsForNSMAdmissionWebhook(nsm.Name)
 	replicas := webhookReplicas
 	// registry := nsmRegistry
 	org := nsmOrg
@@ -21,7 +21,7 @@ func (r *NsmReconciler) deploymentForWebhook(nsm *nsmv1alpha1.Nsm) *appsv1.Deplo
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      webhookName,
 			Namespace: nsm.Namespace,
-			Labels:    labelsForNsmAdmissionWebhook(nsm.Name),
+			Labels:    labelsForNSMAdmissionWebhook(nsm.Name),
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
@@ -90,7 +90,7 @@ func (r *NsmReconciler) deploymentForWebhook(nsm *nsmv1alpha1.Nsm) *appsv1.Deplo
 			},
 		},
 	}
-	// Set Nsm instance as the owner and controller
+	// Set NSM instance as the owner and controller
 	controllerutil.SetControllerReference(nsm, deploy, r.Scheme)
 	return deploy
 }

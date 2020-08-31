@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *NsmReconciler) secretForWebhook(nsm *nsmv1alpha1.Nsm) *corev1.Secret {
+func (r *NSMReconciler) secretForWebhook(nsm *nsmv1alpha1.NSM) *corev1.Secret {
 	var k, c bytes.Buffer
 	host := "nsm-admission-webhook-svc.nsm.svc"
 	generateRSACerts(host, true, &k, &c)
@@ -19,14 +19,14 @@ func (r *NsmReconciler) secretForWebhook(nsm *nsmv1alpha1.Nsm) *corev1.Secret {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      webhookSecretName,
 			Namespace: nsm.Namespace,
-			Labels:    labelsForNsmAdmissionWebhook(nsm.Name),
+			Labels:    labelsForNSMAdmissionWebhook(nsm.Name),
 		},
 		Data: map[string][]byte{
 			corev1.TLSCertKey:       caCert,
 			corev1.TLSPrivateKeyKey: key,
 		},
 	}
-	// Set Nsm instance as the owner and controller
+	// Set NSM instance as the owner and controller
 	controllerutil.SetControllerReference(nsm, secret, r.Scheme)
 	return secret
 }
