@@ -1,6 +1,27 @@
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: nsm-operator-role
+rules:
+- apiGroups:
+  - admissionregistration
+  resources:
+  - mutatingwebhookconfigurations
+  - mutatingwebhookconfigurations/finalizers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   creationTimestamp: null

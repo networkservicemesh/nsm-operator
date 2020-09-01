@@ -53,6 +53,7 @@ type NSMReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=secrets;services;services/finalizers;configmaps;events;persistentvolumeclaims,verbs=get;list;watch;create;update;patch;delete,namespace=nsm
 // +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create,namespace=nsm
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get,namespace=nsm
+// +kubebuilder:rbac:groups=admissionregistration,resources=mutatingwebhookconfigurations;mutatingwebhookconfigurations/finalizers,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile for NSMs
 func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
