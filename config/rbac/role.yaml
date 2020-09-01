@@ -1,11 +1,64 @@
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: Role
 metadata:
   creationTimestamp: null
-  name: manager-role
+  name: nsm-operator-role
+  namespace: nsm
 rules:
+- apiGroups:
+  - apps
+  resources:
+  - daemonsets
+  - deployments
+  - replicasets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resourceNames:
+  - nsm-operator
+  resources:
+  - deployments/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - events
+  - persistentvolumeclaims
+  - secrets
+  - services
+  - services/finalizers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - create
+  - get
 - apiGroups:
   - nsm.networkservicemesh.io
   resources:
