@@ -1,2 +1,7 @@
+# For manual installation uncomment the resources below
+# according to the platform
+
 resources:
 - manager.yaml
+# - nsm-requirements-k8s.yaml
+# - nsm-requirements-ocp.yaml
