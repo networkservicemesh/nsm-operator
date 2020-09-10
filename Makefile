@@ -50,6 +50,12 @@ deploy: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
+# Delete the controller and the other artifacts in the configured Kubernetes cluster in ~/.kube/config
+delete: manifests kustomize
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/default | kubectl delete -f -
+
+
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=nsm-operator-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
