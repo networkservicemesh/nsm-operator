@@ -2,14 +2,14 @@
 # This file is used for operator manual installation
 # It's specific to OpenShift
 
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: nsm
-spec:
-  finalizers:
-  - kubernetes
+# ---
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: nsm
+# spec:
+#   finalizers:
+#   - kubernetes
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -84,7 +84,7 @@ spec:
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: nsm-role
+  name: operand-clusterrole
   labels:
     rbac.authorization.k8s.io/aggregate-to-admin: "true"
     rbac.authorization.k8s.io/aggregate-to-edit: "true"
@@ -144,17 +144,17 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: nsm-webhook-acc
+  name: webhook-acc
   namespace: nsm
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: nsm-role-binding
+  name: operand-clusterrole-binding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: nsm-role
+  name: operand-clusterrole
 subjects:
   - kind: ServiceAccount
     name: nsmgr-acc
@@ -163,7 +163,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: role-nsm-scc-anyuid
+  name: role-scc-anyuid
   namespace: nsm 
 rules:
 - apiGroups:
@@ -178,7 +178,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: role-nsm-scc-privileged
+  name: role-scc-privileged
   namespace: nsm 
 rules:
 - apiGroups:
@@ -193,26 +193,26 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: nsm-scc-webhook
+  name: rolebinding-scc-webhook
   namespace: nsm
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: role-nsm-scc-anyuid
+  name: role-scc-anyuid
 subjects:
   - kind: ServiceAccount
-    name: nsm-webhook-acc
+    name: webhook-acc
     namespace: nsm
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: nsm-scc-nsmgr-acc
+  name: rolebinding-scc-nsmgr
   namespace: nsm
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: role-nsm-scc-privileged
+  name: role-scc-privileged
 subjects:
   - kind: ServiceAccount
     name: nsmgr-acc
@@ -221,12 +221,12 @@ subjects:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: nsm-scc-forward-plane-acc
+  name: rolebinding-scc-forward-plane
   namespace: nsm
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: role-nsm-scc-privileged
+  name: role-scc-privileged
 subjects:
   - kind: ServiceAccount
     name: forward-plane-acc

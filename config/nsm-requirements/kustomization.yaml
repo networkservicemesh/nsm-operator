@@ -1,0 +1,6 @@
+# For vanilla kubernetes comment the nsm-requirements-ocp.yaml
+# and uncomment nsm-requirements-k8s.yaml
+
+resources:
+# - nsm-requirements-k8s.yaml
+- nsm-requirements-ocp.yaml
