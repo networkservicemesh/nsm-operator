@@ -1,6 +1,5 @@
-# For vanilla kubernetes comment the nsm-requirements-ocp.yaml
-# and uncomment nsm-requirements-k8s.yaml
+# For OpenShift uncomment nsm-requirements-ocp.yaml to create the sccs
 
 resources:
-# - nsm-requirements-k8s.yaml
+- nsm-requirements-k8s.yaml
 - nsm-requirements-ocp.yaml
