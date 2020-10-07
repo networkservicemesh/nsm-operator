@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	admissionregv1beta1 "k8s.io/api/admissionregistration/v1beta1"
+	admissionregv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -46,13 +46,13 @@ type NSMReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=nsm.networkservicemesh.io,resources=nsms,verbs=get;list;watch;create;update;patch;delete,namespace=nsm
-// +kubebuilder:rbac:groups=nsm.networkservicemesh.io,resources=nsms/status,verbs=get;update;patch,namespace=nsm
-// +kubebuilder:rbac:groups=apps,resources=daemonsets;deployments;replicasets,verbs=get;list;watch;create;update;patch;delete,namespace=nsm
-// +kubebuilder:rbac:groups=apps,resourceNames=nsm-operator,resources=deployments/finalizers,verbs=update,namespace=nsm
-// +kubebuilder:rbac:groups=core,resources=secrets;services;services/finalizers;configmaps;events;persistentvolumeclaims,verbs=get;list;watch;create;update;patch;delete,namespace=nsm
-// +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create,namespace=nsm
-// +kubebuilder:rbac:groups=core,resources=pods,verbs=get,namespace=nsm
+// +kubebuilder:rbac:groups=nsm.networkservicemesh.io,resources=nsms,verbs=get;list;watch;create;update;patch;delete,namespace=nsm-system
+// +kubebuilder:rbac:groups=nsm.networkservicemesh.io,resources=nsms/status,verbs=get;update;patch,namespace=nsm-system
+// +kubebuilder:rbac:groups=apps,resources=daemonsets;deployments;replicasets,verbs=get;list;watch;create;update;patch;delete,namespace=nsm-system
+// +kubebuilder:rbac:groups=apps,resourceNames=nsm-operator,resources=deployments/finalizers,verbs=update,namespace=nsm-system
+// +kubebuilder:rbac:groups=core,resources=secrets;services;services/finalizers;configmaps;events;persistentvolumeclaims,verbs=get;list;watch;create;update;patch;delete,namespace=nsm-system
+// +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create,namespace=nsm-system
+// +kubebuilder:rbac:groups=core,resources=pods,verbs=get,namespace=nsm-system
 // +kubebuilder:rbac:groups=admissionregistration,resources=mutatingwebhookconfigurations;mutatingwebhookconfigurations/finalizers,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile for NSMs
@@ -161,7 +161,7 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Reconcile the Mutating Webhook Configuration Object
-	mutatingConfig := &admissionregv1beta1.MutatingWebhookConfiguration{}
+	mutatingConfig := &admissionregv1.MutatingWebhookConfiguration{}
 	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: webhookMutatingConfigName}, mutatingConfig)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new mutatingConfig
@@ -236,7 +236,7 @@ func (r *NSMReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.Service{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Secret{}).
-		Owns(&admissionregv1beta1.MutatingWebhookConfiguration{}).
+		Owns(&admissionregv1.MutatingWebhookConfiguration{}).
 		Owns(&appsv1.DaemonSet{}).
 		Owns(&corev1.ConfigMap{}).
 		Complete(r)

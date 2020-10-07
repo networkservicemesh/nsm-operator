@@ -4,7 +4,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: role-scc-anyuid
-  namespace: nsm 
+  namespace: nsm-system 
 rules:
 - apiGroups:
   - security.openshift.io 
@@ -19,7 +19,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: role-scc-privileged
-  namespace: nsm 
+  namespace: nsm-system
 rules:
 - apiGroups:
   - security.openshift.io 
@@ -34,7 +34,7 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rolebinding-scc-webhook
-  namespace: nsm
+  namespace: nsm-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -42,13 +42,13 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: webhook-acc
-    namespace: nsm
+    namespace: nsm-system
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rolebinding-scc-nsmgr
-  namespace: nsm
+  namespace: nsm-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -56,13 +56,13 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: nsmgr-acc
-    namespace: nsm
+    namespace: nsm-system
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: rolebinding-scc-forward-plane
-  namespace: nsm
+  namespace: nsm-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -70,4 +70,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: forward-plane-acc
-    namespace: nsm        
+    namespace: nsm-system

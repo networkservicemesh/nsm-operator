@@ -109,31 +109,31 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: nse-acc
-  namespace: nsm
+  namespace: nsm-system
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: nsc-acc
-  namespace: nsm
+  namespace: nsm-system
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: nsmgr-acc
-  namespace: nsm
+  namespace: nsm-system
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: forward-plane-acc
-  namespace: nsm
+  namespace: nsm-system
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: webhook-acc
-  namespace: nsm
+  namespace: nsm-system
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -146,4 +146,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: nsmgr-acc
-    namespace: nsm
+    namespace: nsm-system

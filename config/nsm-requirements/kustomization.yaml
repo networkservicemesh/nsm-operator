@@ -2,4 +2,4 @@
 
 resources:
 - nsm-requirements-k8s.yaml
-- nsm-requirements-ocp.yaml
+# - nsm-requirements-ocp.yaml

@@ -2,7 +2,7 @@ apiVersion: nsm.networkservicemesh.io/v1alpha1
 kind: NSM
 metadata:
   name: nsm-sample
-  namespace: nsm
+  namespace: nsm-system
 spec:
   # INSECURE env var
   insecure: true
