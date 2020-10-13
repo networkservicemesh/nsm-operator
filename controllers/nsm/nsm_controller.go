@@ -46,6 +46,14 @@ type NSMReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+// +kubebuilder:rbac:groups=nsm.networkservicemesh.io,resources=nsms,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=nsm.networkservicemesh.io,resources=nsms/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=apps,resources=daemonsets;deployments;replicasets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=apps,resourceNames=nsm-operator,resources=deployments/finalizers,verbs=update
+// +kubebuilder:rbac:groups=core,resources=secrets;services;services/finalizers;configmaps;events;persistentvolumeclaims,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create
+// +kubebuilder:rbac:groups=core,resources=pods,verbs=get
+
 // +kubebuilder:rbac:groups=nsm.networkservicemesh.io,resources=nsms,verbs=get;list;watch;create;update;patch;delete,namespace=nsm-system
 // +kubebuilder:rbac:groups=nsm.networkservicemesh.io,resources=nsms/status,verbs=get;update;patch,namespace=nsm-system
 // +kubebuilder:rbac:groups=apps,resources=daemonsets;deployments;replicasets,verbs=get;list;watch;create;update;patch;delete,namespace=nsm-system

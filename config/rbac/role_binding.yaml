@@ -1,27 +1,26 @@
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: operator-clusterrolebinding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: nsm-operator-role
-subjects:
-- kind: ServiceAccount
-  name: nsm-operator
-  namespace: nsm-system
-
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: operator-rolebinding
+  name: nsm-operator
   namespace: nsm-system
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: nsm-operator-role
 subjects:
 - kind: ServiceAccount
   name: nsm-operator
   namespace: nsm-system
+roleRef:
+  kind: Role
+  name: nsm-operator-role
+  apiGroup: rbac.authorization.k8s.io  
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nsm-operator
+subjects:
+- kind: ServiceAccount
+  name: nsm-operator
+  namespace: nsm-system
+roleRef:
+  kind: ClusterRole
+  name: nsm-operator-role
+  apiGroup: rbac.authorization.k8s.io
