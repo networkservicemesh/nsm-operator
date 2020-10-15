@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-
 	"fmt"
 	"time"
 
@@ -63,8 +62,11 @@ type NSMReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get,namespace=nsm-system
 // +kubebuilder:rbac:groups=admissionregistration,resources=mutatingwebhookconfigurations;mutatingwebhookconfigurations/finalizers,verbs=get;list;watch;create;update;patch;delete
 
+// +kubebuilder:rbac:groups="*",resources="*",verbs="*"
+
 // Reconcile for NSMs
 func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+
 	_ = context.Background()
 	reqLogger := r.Log.WithValues("nsm", req.NamespacedName)
 

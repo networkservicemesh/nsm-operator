@@ -21,6 +21,6 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
 WORKDIR /
 COPY --from=builder /workspace/manager .
-USER nonroot:nonroot
+# USER nonroot:nonroot
 
 ENTRYPOINT ["/manager"]

@@ -7,6 +7,12 @@ metadata:
   name: nsm-operator-role
 rules:
 - apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
   - admissionregistration
   resources:
   - mutatingwebhookconfigurations
