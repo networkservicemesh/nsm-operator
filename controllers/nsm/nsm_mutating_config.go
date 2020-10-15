@@ -11,6 +11,7 @@ func (r *NSMReconciler) mutatingConfigForWebhook(nsm *nsmv1alpha1.NSM) *admissio
 
 	var path string
 	path = "/mutate"
+	var sideEffectsClass = admissionregv1.SideEffectClassNone
 
 	annotations := map[string]string{}
 	if r.isPlatformOpenShift() {
@@ -46,6 +47,8 @@ func (r *NSMReconciler) mutatingConfigForWebhook(nsm *nsmv1alpha1.NSM) *admissio
 						},
 					},
 				},
+				SideEffects:             &sideEffectsClass,
+				AdmissionReviewVersions: []string{"v1", "v1beta1"},
 			},
 		},
 	}
