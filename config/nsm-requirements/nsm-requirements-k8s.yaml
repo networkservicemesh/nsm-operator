@@ -132,7 +132,7 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: webhook-acc
+  name: nsm-webhook-acc
   namespace: nsm-system
 ---
 kind: ClusterRoleBinding

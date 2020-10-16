@@ -41,7 +41,7 @@ roleRef:
   name: role-scc-anyuid
 subjects:
   - kind: ServiceAccount
-    name: webhook-acc
+    name: nsm-webhook-acc
     namespace: nsm-system
 ---
 kind: RoleBinding
