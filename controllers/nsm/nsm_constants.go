@@ -11,6 +11,7 @@ const (
 	nsmOrg        = "networkservicemesh"
 	nsmVersion    = "latest"
 	nsmPullPolicy = corev1.PullIfNotPresent
+	nsmNamespace  = "nsm-system"
 
 	webhookName                     = "nsm-admission-webhook"
 	webhookSecretName               = webhookName + "-certs"
