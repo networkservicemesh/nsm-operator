@@ -18,11 +18,10 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
-	admissionregv1 "k8s.io/api/admissionregistration/v1"
+	admissionregv1 "k8s.io/api/admissionregistration/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -84,28 +83,28 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			reqLogger.Info("Failed to update status", "Error", err.Error())
 		}
 	}
-	// if it is OpenShift, create the kubeadm configMap with the network prefixes in use
-	if r.isPlatformOpenShift() {
-		cm := &corev1.ConfigMap{}
-		err = r.Client.Get(context.TODO(), types.NamespacedName{Name: "kubeadm-config", Namespace: "kube-system"}, cm)
-		fmt.Print(err)
-		if err != nil && errors.IsNotFound(err) {
-			cm = r.getNetworkConfigMap()
-			err = r.Client.Create(context.TODO(), cm)
-			if err != nil {
-				reqLogger.Error(err, "Failed to create kubeadm ConfigMap", "ConfigMap.Namespace", cm.Namespace, "ConfigMap.Name", cm.Name)
-				return reconcile.Result{}, nil
-			}
-			// ConfigMap created successfully - return and requeue
-			return reconcile.Result{Requeue: true}, nil
-		}
-	}
+	// // if it is OpenShift, create the kubeadm configMap with the network prefixes in use
+	// if r.isPlatformOpenShift() {
+	// 	cm := &corev1.ConfigMap{}
+	// 	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: "kubeadm-config", Namespace: "kube-system"}, cm)
+	// 	fmt.Print(err)
+	// 	if err != nil && errors.IsNotFound(err) {
+	// 		cm = r.getNetworkConfigMap()
+	// 		err = r.Client.Create(context.TODO(), cm)
+	// 		if err != nil {
+	// 			reqLogger.Error(err, "Failed to create kubeadm ConfigMap", "ConfigMap.Namespace", cm.Namespace, "ConfigMap.Name", cm.Name)
+	// 			return reconcile.Result{}, nil
+	// 		}
+	// 		// ConfigMap created successfully - return and requeue
+	// 		return reconcile.Result{Requeue: true}, nil
+	// 	}
+	// }
 
 	// Reconcile the Admission Webhook Secret Containing the CABundle data if platform is not OpenShift
 	// OpenShift uses the service-ca operator to get the secret
 	if !r.isPlatformOpenShift() {
 		secret := &corev1.Secret{}
-		err = r.Client.Get(context.TODO(), types.NamespacedName{Name: webhookSecretName, Namespace: nsm.Namespace}, secret)
+		err = r.Client.Get(context.TODO(), types.NamespacedName{Name: webhookSecretName, Namespace: nsmNamespace}, secret)
 		if err != nil && errors.IsNotFound(err) {
 			// Define a new Secret
 			secret := r.secretForWebhook(nsm)
@@ -124,7 +123,7 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 	// Reconcile the Admission Webhook Service
 	service := &corev1.Service{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: webhookServiceName, Namespace: nsm.Namespace}, service)
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: webhookServiceName, Namespace: nsmNamespace}, service)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new service
 		service := r.serviceForWebhook(nsm)
@@ -144,7 +143,7 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// Reconcile the Admission Webhook Deployment
 	deploy := &appsv1.Deployment{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: webhookName, Namespace: nsm.Namespace}, deploy)
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: webhookName, Namespace: nsmNamespace}, deploy)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new deployment
 		deploy := r.deploymentForWebhook(nsm)
@@ -167,10 +166,13 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: webhookMutatingConfigName}, mutatingConfig)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new mutatingConfig
-		mutatingConfig := r.mutatingConfigForWebhook(nsm)
+		mutatingConfig, err := r.mutatingConfigForWebhook(nsm)
+		if err != nil {
+			reqLogger.Info("Error generating mutate webhook configuration", "MutatingConfig.Namespace", mutatingConfig.Namespace, "MutatingConfig.Name", mutatingConfig.Name)
+			return reconcile.Result{}, err
+		}
 		reqLogger.Info("Creating a new mutatingConfig", "MutatingConfig.Namespace", mutatingConfig.Namespace, "MutatingConfig.Name", mutatingConfig.Name)
 		err = r.Client.Create(context.TODO(), mutatingConfig)
-
 		if err != nil {
 			reqLogger.Error(err, "Failed to create new mutatingConfig", "MutatingConfig.Namespace", mutatingConfig.Namespace, "MutatingConfig.Name", mutatingConfig.Name)
 			return reconcile.Result{}, err
@@ -184,7 +186,7 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// Reconcile the Network Service Manager
 	daemonsetForNSMGR := &appsv1.DaemonSet{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: "nsmgr", Namespace: nsm.Namespace}, daemonsetForNSMGR)
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: "nsmgr", Namespace: nsmNamespace}, daemonsetForNSMGR)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new daemonsetForNSMGR
 		daemonsetForNSMGR := r.deamonSetForNSMGR(nsm)
@@ -203,7 +205,7 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// Reconcile the Forwarding Plane DaemonSet
 	daemonsetForFP := &appsv1.DaemonSet{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: "nsm-" + nsm.Spec.ForwardingPlaneName + "-forwarder", Namespace: nsm.Namespace}, daemonsetForFP)
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: "nsm-" + nsm.Spec.ForwardingPlaneName + "-forwarder", Namespace: nsmNamespace}, daemonsetForFP)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new daemonsetForFP
 		daemonsetForFP := r.deamonSetForForwardingPlane(nsm)

@@ -14,7 +14,7 @@ spec:
     listKind: NSMList
     plural: nsms
     singular: nsm
-  scope: Namespaced
+  scope: Cluster
   versions:
   - name: v1alpha1
     schema:

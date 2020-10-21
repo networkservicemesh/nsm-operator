@@ -19,7 +19,7 @@ func (r *NSMReconciler) serviceForWebhook(nsm *nsmv1alpha1.NSM) *corev1.Service 
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      webhookServiceName,
-			Namespace: nsm.Namespace,
+			Namespace: nsmNamespace,
 			Labels:    labelsForNSMAdmissionWebhook(nsm.Name),
 
 			// TODO: Solve TLS Certs for OCP - This annotation below is specific to OpenShift and needs to be addressed other way

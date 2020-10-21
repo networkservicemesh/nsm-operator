@@ -18,7 +18,7 @@ func (r *NSMReconciler) secretForWebhook(nsm *nsmv1alpha1.NSM) *corev1.Secret {
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      webhookSecretName,
-			Namespace: nsm.Namespace,
+			Namespace: nsmNamespace,
 			Labels:    labelsForNSMAdmissionWebhook(nsm.Name),
 		},
 		Data: map[string][]byte{

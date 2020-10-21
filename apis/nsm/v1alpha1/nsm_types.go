@@ -69,6 +69,7 @@ type NSMStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:path=nsms,scope=Cluster
 
 // NSM is the Schema for the nsms API
 type NSM struct {

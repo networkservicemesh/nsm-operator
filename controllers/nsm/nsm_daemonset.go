@@ -29,7 +29,7 @@ func (r *NSMReconciler) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSe
 	daemonset := &appsv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "nsmgr",
-			Namespace: nsm.Namespace,
+			Namespace: nsmNamespace,
 			Labels:    map[string]string{"app": "nsmgr-daemonset"},
 		},
 		Spec: appsv1.DaemonSetSpec{
@@ -224,7 +224,7 @@ func (r *NSMReconciler) deamonSetForForwardingPlane(nsm *nsmv1alpha1.NSM) *appsv
 
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "nsm-" + fp + "-forwarder",
-			Namespace: nsm.Namespace,
+			Namespace: nsmNamespace,
 			Labels:    map[string]string{"app": "nsm-" + fp + "-forwarder"},
 		},
 		Spec: appsv1.DaemonSetSpec{

@@ -20,7 +20,7 @@ func (r *NSMReconciler) deploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deplo
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      webhookName,
-			Namespace: nsm.Namespace,
+			Namespace: nsmNamespace,
 			Labels:    labelsForNSMAdmissionWebhook(nsm.Name),
 		},
 		Spec: appsv1.DeploymentSpec{
