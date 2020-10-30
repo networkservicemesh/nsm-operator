@@ -9,7 +9,7 @@ A Kubernetes Operator for Installing and Managing Network Service Meshes
 
 The Network Service Mesh Operator is a tool to install and manage the [Network Service Mesh][nsm_home] application which <em> is a novel approach solving complicated L2/L3 use cases in Kubernetes that are tricky to address with the existing Kubernetes Network Model. Inspired by Istio, Network Service Mesh maps the concept of a Service Mesh to L2/L3 payloads as part of an attempt to re-imagine NFV in a Cloud-native way! </em>. To  better understand the network service meshes take a look at [what is nsm][nsm_whatis].
 
-The operator is a single pod workload that automates operational human knowledge behind the scenes to create the service mesh infrastructure components deploying a webhook and daemonsets with the network service managers and forwarding plane workloads taking the configuration from the Custom Resource manifest created specifically to be used with the operator. It aims to be platform independed and for such should run well in any kubernetes distribution.
+The operator is a single pod workload that automates operational human knowledge behind the scenes to create the service mesh infrastructure components deploying a webhook and daemonsets with the network service managers and forwarding plane workloads taking the configuration from the Custom Resource manifest created specifically to be used with the operator. It aims to be platform independent and as such should run well in any kubernetes distribution.
 
 Some of the features intended to be embedded with the operator are
 
@@ -68,7 +68,7 @@ nsmgr-s5tg2                             3/3     Running   0          6m57s
 nsmgr-xfdf8                             3/3     Running   0          6m57s
 ```
 
-| NOTE: nsm operator doesn't support the use of secure mode, aka spire, on Openshift yet. Planned for release 0.0.2. Jaegger tracing option is currently under development for both kubernetes and openshift as well. |
+| NOTE: nsm operator doesn't support the use of secure mode, aka spire, on Openshift yet. Planned for release 0.0.2. Jaeger tracing option is currently under development for both kubernetes and openshift as well. |
 | --- |
 
 After that, we have the basic network service mesh control plane and forwarding plan in place. That's the moment we can start to play with network services examples. 
