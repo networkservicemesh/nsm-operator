@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,8 +29,13 @@ type NSMSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// nsmgr configs true or false
-	Insecure bool `json:"insecure"`
+	// tag represents the desired nsm version
+	Tag                 string            `json:"tag"`
+	NsmPullPolicy       corev1.PullPolicy `json:"nsmPullPolicy"`
+	Registry            string            `json:"registry"`
+	Organization        string            `json:"organization"`
+	RegistryMemoryImage string            `json:"registryMemoryImage"`
+	NsmgrImage          string            `json:"nsmgrImage"`
 
 	// Forwarding plane configs
 	ForwardingPlaneName  string `json:"forwardingPlaneName"`
@@ -37,13 +43,6 @@ type NSMSpec struct {
 
 	// Version field for reference on Openshift UI
 	Version string `json:"version"`
-
-	// Enable Spire true or false - for future release
-	// Spire bool `json:"spire"`
-
-	// Enable Tracing true or false
-	// JaegerTracing bool `json:"jaegerTracing"`
-
 }
 
 // NSMPhase is the type for the operator phases

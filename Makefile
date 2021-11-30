@@ -1,5 +1,5 @@
 # Current Operator version
-VERSION ?= 0.0.1
+VERSION ?= 0.0.3
 # Default bundle image tag
 BUNDLE_IMG ?= controller-bundle:$(VERSION)
 # Options for 'bundle-build'
@@ -12,7 +12,7 @@ endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # Image URL to use all building/pushing image targets
-IMG ?= quay.io/acmenezes/nsm-operator:v0.0.2
+IMG ?= quay.io/acmenezes/nsm-operator:v0.0.3
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -50,6 +50,11 @@ deploy: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
+
+undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
+	$(KUSTOMIZE) build config/default | kubectl delete -f -
+
+
 # Delete the controller and the other artifacts in the configured Kubernetes cluster in ~/.kube/config
 delete: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
@@ -76,12 +81,12 @@ generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 # Build the docker image
-docker-build: test
-	docker build . -t ${IMG}
+podman-build:
+	podman build . -t ${IMG}
 
 # Push the docker image
-docker-push:
-	docker push ${IMG}
+podman-push:
+	podman push ${IMG}
 
 # find or download controller-gen
 # download controller-gen if necessary

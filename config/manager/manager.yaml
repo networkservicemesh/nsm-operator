@@ -2,25 +2,25 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    control-plane: controller-manager
-  name: nsm-system
+    control-plane: nsm-operator
+  name: nsm
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-manager
-  namespace: nsm-system
+  name: nsm-operator
+  namespace: nsm
   labels:
-    control-plane: controller-manager
+    control-plane: nsm-operator
 spec:
   selector:
     matchLabels:
-      control-plane: controller-manager
+      control-plane: nsm-operator
   replicas: 1
   template:
     metadata:
       labels:
-        control-plane: controller-manager
+        control-plane: nsm-operator
     spec:
       serviceAccountName: nsm-operator
       containers:

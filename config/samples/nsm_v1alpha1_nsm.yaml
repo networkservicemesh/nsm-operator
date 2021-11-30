@@ -4,12 +4,18 @@ metadata:
   name: nsm-sample
   namespace: nsm-system
 spec:
-  # INSECURE env var
-  insecure: true
+  tag: v1.0.0
+  nsmPullPolicy: IfNotPresent
 
+  registry: ghcr.io
+  organization: networkservicemesh
+
+  registryMemoryImage: cmd-registry-memory
+  nsmgrImage: cmd-nsmgr
+  
   # Forwarding Plane Configs
   forwardingPlaneName: vpp
-  forwardingPlaneImage: vppagent-forwarder
+  forwardingPlaneImage: cmd-forwarder-vpp
 
   # Version field for Openshift UI
   version: "latest"
