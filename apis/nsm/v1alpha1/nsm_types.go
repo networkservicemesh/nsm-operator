@@ -21,14 +21,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // NSMSpec defines the desired state of NSM
 type NSMSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
 	// tag represents the desired nsm version
 	Tag                 string            `json:"tag"`
 	NsmPullPolicy       corev1.PullPolicy `json:"nsmPullPolicy"`
@@ -59,9 +53,6 @@ const (
 
 // NSMStatus defines the observed state of NSM
 type NSMStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
 	// Operator phases during deployment
 	Phase NSMPhase `json:"phase"`
 }

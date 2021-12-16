@@ -45,21 +45,38 @@ install: manifests kustomize
 uninstall: manifests kustomize
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
+nsm-namespace:
+	kubectl create ns nsm
+
+delete-nsm-namespace:
+	kubectl delete ns nsm
+
+spire:
+	cd scripts/spire && helm install spire . -n nsm
+	@echo "Waiting for spire to get ready..."
+	@sleep 10
+	cd scripts/scripts && ./spire-config.sh && ./spire-entry.sh nsm-operator nsm
+
+delete-spire:
+	@for entry in $$(kubectl -n spire exec spire-server-0 -- /opt/spire/bin/spire-server entry show | grep 'Entry ID' | awk '{print $$4}'); do \
+	 kubectl -n spire exec spire-server-0 -- /opt/spire/bin/spire-server entry delete -entryID $$entry; \
+	done
+	helm delete spire -n nsm
+
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: manifests kustomize
+deploy: nsm-namespace spire manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
-
-undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
+delete-nsm-operator:	
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
+undeploy: delete-nsm-operator delete-spire delete-nsm-namespace
 
 # Delete the controller and the other artifacts in the configured Kubernetes cluster in ~/.kube/config
 delete: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
-
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
