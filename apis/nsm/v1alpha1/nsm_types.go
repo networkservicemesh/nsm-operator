@@ -24,19 +24,16 @@ import (
 // NSMSpec defines the desired state of NSM
 type NSMSpec struct {
 	// tag represents the desired nsm version
-	Tag                 string            `json:"tag"`
+	Version             string            `json:"version"`
 	NsmPullPolicy       corev1.PullPolicy `json:"nsmPullPolicy"`
-	Registry            string            `json:"registry"`
-	Organization        string            `json:"organization"`
+	Registry            string            `json:"registry,omitempty"`
+	Organization        string            `json:"organization,omitempty"`
 	RegistryMemoryImage string            `json:"registryMemoryImage"`
 	NsmgrImage          string            `json:"nsmgrImage"`
 
 	// Forwarding plane configs
 	ForwardingPlaneName  string `json:"forwardingPlaneName"`
 	ForwardingPlaneImage string `json:"forwardingPlaneImage"`
-
-	// Version field for reference on Openshift UI
-	Version string `json:"version"`
 }
 
 // NSMPhase is the type for the operator phases
@@ -59,7 +56,7 @@ type NSMStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:path=nsms,scope=Cluster
+// +kubebuilder:resource:path=nsms
 
 // NSM is the Schema for the nsms API
 type NSM struct {

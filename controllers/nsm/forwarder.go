@@ -39,7 +39,7 @@ func (r *NSMReconciler) deamonSetForForwardingPlane(nsm *nsmv1alpha1.NSM, object
 						// forwarding plane container
 						{
 							Name:            nsm.Spec.ForwardingPlaneName,
-							Image:           nsm.Spec.Registry + "/" + nsm.Spec.Organization + "/" + nsm.Spec.ForwardingPlaneImage + ":" + nsm.Spec.Tag,
+							Image:           nsm.Spec.Registry + "/" + nsm.Spec.Organization + "/" + nsm.Spec.ForwardingPlaneImage + ":" + nsm.Spec.Version,
 							ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,

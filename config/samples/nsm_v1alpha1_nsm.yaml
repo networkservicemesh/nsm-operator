@@ -2,13 +2,10 @@ apiVersion: nsm.networkservicemesh.io/v1alpha1
 kind: NSM
 metadata:
   name: nsm-sample
-  namespace: nsm-system
+  namespace: nsm
 spec:
-  tag: v1.0.0
+  version: v1.1.0
   nsmPullPolicy: IfNotPresent
-
-  registry: ghcr.io
-  organization: networkservicemesh
 
   registryMemoryImage: cmd-registry-memory
   nsmgrImage: cmd-nsmgr
@@ -17,5 +14,3 @@ spec:
   forwardingPlaneName: vpp
   forwardingPlaneImage: cmd-forwarder-vpp
 
-  # Version field for Openshift UI
-  version: "latest"

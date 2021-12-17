@@ -50,7 +50,9 @@ type NSMReconciler struct {
 // +kubebuilder:rbac:groups="*",resources="*",verbs="*"
 
 const (
-	serviceAccountName string = "nsm-operator"
+	serviceAccountName  string = "nsm-operator"
+	defaultRegistry     string = "ghcr.io"
+	defaultOrganization string = "networkservicemesh"
 )
 
 // Reconcile for NSMs
@@ -72,6 +74,14 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
+	}
+
+	if nsm.Spec.Registry == "" {
+		nsm.Spec.Registry = defaultRegistry
+	}
+
+	if nsm.Spec.Organization == "" {
+		nsm.Spec.Organization = defaultOrganization
 	}
 
 	// Update the status field to creating

@@ -33,7 +33,7 @@ apiVersion: nsm.networkservicemesh.io/v1alpha1
 kind: NSM
 metadata:
   name: nsm-sample
-  namespace: nsm-system
+  namespace: nsm
 spec:
   tag: v1.0.0
   nsmPullPolicy: IfNotPresent
