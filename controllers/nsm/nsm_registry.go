@@ -31,7 +31,7 @@ func (r *NSMReconciler) deploymentForRegistryMemory(nsm *nsmv1alpha1.NSM, object
 					ServiceAccountName: serviceAccountName,
 					Containers: []corev1.Container{{
 						Name:            "nsm-registry",
-						Image:           nsm.Spec.Registry + "/" + nsm.Spec.Organization + "/" + nsm.Spec.RegistryMemoryImage + ":" + nsm.Spec.Version,
+						Image:           nsm.Spec.RegistryMemoryImage + ":" + nsm.Spec.Version,
 						ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 						SecurityContext: &corev1.SecurityContext{
 							Privileged: &privmode,

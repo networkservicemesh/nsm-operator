@@ -47,10 +47,6 @@ spec:
                 type: string
               nsmgrImage:
                 type: string
-              organization:
-                type: string
-              registry:
-                type: string
               registryMemoryImage:
                 type: string
               version:
@@ -60,8 +56,6 @@ spec:
             - forwardingPlaneImage
             - forwardingPlaneName
             - nsmPullPolicy
-            - nsmgrImage
-            - registryMemoryImage
             - version
             type: object
           status:

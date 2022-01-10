@@ -6,11 +6,8 @@ metadata:
 spec:
   version: v1.1.0
   nsmPullPolicy: IfNotPresent
-
-  registryMemoryImage: cmd-registry-memory
-  nsmgrImage: cmd-nsmgr
   
   # Forwarding Plane Configs
   forwardingPlaneName: vpp
-  forwardingPlaneImage: cmd-forwarder-vpp
+  forwardingPlaneImage: ghcr.io/networkservicemesh/cmd-forwarder-vpp
 

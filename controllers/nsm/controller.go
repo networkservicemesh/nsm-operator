@@ -51,8 +51,8 @@ type NSMReconciler struct {
 
 const (
 	serviceAccountName  string = "nsm-operator"
-	defaultRegistry     string = "ghcr.io"
-	defaultOrganization string = "networkservicemesh"
+	registryMemoryImage string = "ghcr.io/networkservicemesh/cmd-registry-memory"
+	nsmgrImage          string = "ghcr.io/networkservicemesh/cmd-nsmgr"
 )
 
 // Reconcile for NSMs
@@ -76,12 +76,12 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return reconcile.Result{}, err
 	}
 
-	if nsm.Spec.Registry == "" {
-		nsm.Spec.Registry = defaultRegistry
+	if nsm.Spec.RegistryMemoryImage == "" {
+		nsm.Spec.RegistryMemoryImage = registryMemoryImage
 	}
 
-	if nsm.Spec.Organization == "" {
-		nsm.Spec.Organization = defaultOrganization
+	if nsm.Spec.NsmgrImage == "" {
+		nsm.Spec.NsmgrImage = nsmgrImage
 	}
 
 	// Update the status field to creating

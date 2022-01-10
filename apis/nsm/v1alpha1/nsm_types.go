@@ -26,10 +26,8 @@ type NSMSpec struct {
 	// tag represents the desired nsm version
 	Version             string            `json:"version"`
 	NsmPullPolicy       corev1.PullPolicy `json:"nsmPullPolicy"`
-	Registry            string            `json:"registry,omitempty"`
-	Organization        string            `json:"organization,omitempty"`
-	RegistryMemoryImage string            `json:"registryMemoryImage"`
-	NsmgrImage          string            `json:"nsmgrImage"`
+	RegistryMemoryImage string            `json:"registryMemoryImage,omitempty"`
+	NsmgrImage          string            `json:"nsmgrImage,omitempty"`
 
 	// Forwarding plane configs
 	ForwardingPlaneName  string `json:"forwardingPlaneName"`

@@ -34,7 +34,7 @@ func (r *NSMReconciler) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM, objectMeta metav
 						// nsmdp container
 						{
 							Name:            "nsmgr",
-							Image:           nsm.Spec.Registry + "/" + nsm.Spec.Organization + "/" + nsm.Spec.NsmgrImage + ":" + nsm.Spec.Version,
+							Image:           nsm.Spec.NsmgrImage + ":" + nsm.Spec.Version,
 							ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,
