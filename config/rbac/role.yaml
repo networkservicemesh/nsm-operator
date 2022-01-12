@@ -32,7 +32,7 @@ kind: Role
 metadata:
   creationTimestamp: null
   name: nsm-operator-role
-  namespace: nsm-system
+  namespace: nsm
 rules:
 - apiGroups:
   - apps

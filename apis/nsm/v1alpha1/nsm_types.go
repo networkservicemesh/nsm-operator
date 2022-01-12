@@ -17,33 +17,21 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // NSMSpec defines the desired state of NSM
 type NSMSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// nsmgr configs true or false
-	Insecure bool `json:"insecure"`
+	// tag represents the desired nsm version
+	Version             string            `json:"version"`
+	NsmPullPolicy       corev1.PullPolicy `json:"nsmPullPolicy"`
+	RegistryMemoryImage string            `json:"registryMemoryImage,omitempty"`
+	NsmgrImage          string            `json:"nsmgrImage,omitempty"`
 
 	// Forwarding plane configs
 	ForwardingPlaneName  string `json:"forwardingPlaneName"`
 	ForwardingPlaneImage string `json:"forwardingPlaneImage"`
-
-	// Version field for reference on Openshift UI
-	Version string `json:"version"`
-
-	// Enable Spire true or false - for future release
-	// Spire bool `json:"spire"`
-
-	// Enable Tracing true or false
-	// JaegerTracing bool `json:"jaegerTracing"`
-
 }
 
 // NSMPhase is the type for the operator phases
@@ -60,16 +48,13 @@ const (
 
 // NSMStatus defines the observed state of NSM
 type NSMStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
 	// Operator phases during deployment
 	Phase NSMPhase `json:"phase"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:path=nsms,scope=Cluster
+// +kubebuilder:resource:path=nsms
 
 // NSM is the Schema for the nsms API
 type NSM struct {

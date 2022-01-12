@@ -7,89 +7,158 @@ A Kubernetes Operator for Installing and Managing Network Service Meshes
 
 #### Overview
 
-The Network Service Mesh Operator is a tool to install and manage the [Network Service Mesh][nsm_home] application which <em> is a novel approach solving complicated L2/L3 use cases in Kubernetes that are tricky to address with the existing Kubernetes Network Model. Inspired by Istio, Network Service Mesh maps the concept of a Service Mesh to L2/L3 payloads as part of an attempt to re-imagine NFV in a Cloud-native way! </em>. To  better understand the network service meshes take a look at [what is nsm][nsm_whatis].
+The Network Service Mesh Operator is a tool to install and manage the [Network Service Mesh][nsm_home] application which <em> is a novel approach solving complicated L2/L3 use cases in Kubernetes that are tricky to address with the existing Kubernetes Network Model. Inspired by Istio, Network Service Mesh maps the concept of a Service Mesh to L2/L3 payloads as part of an attempt to re-imagine NFV in a Cloud-native way! </em>. To  better understand the network service meshes take a look at [what is nsm][https://networkservicemesh.io/].
 
 The operator is a single pod workload that automates operational human knowledge behind the scenes to create the service mesh infrastructure components deploying a webhook and daemonsets with the network service managers and forwarding plane workloads taking the configuration from the Custom Resource manifest created specifically to be used with the operator. It aims to be platform independed and for such should run well in any kubernetes distribution.
 
-Some of the features intended to be embedded with the operator are
+#### Installation Steps:
 
-* Installing, configuring and making cleanups if needed
-
-* Upgrading, backing up and restoring any important state information
-
-* Expose and aggregate metrics from all components through prometheus/grafana
-
-* Operations analytics based on metrics exposed   
-
-* Auto-pilot functions such as distributing NSM registry into multiple pods according to the size of the cluster among other functions that may be addressed as well via automation.
-
-### Install
-
-#### Getting Started
-
-The network service mesh operator is supported for use with kubernetes 1.14 or above and Openshift 4 or above. It can be installed automatically using the Operator Lifecycle Manager or it can be installed manually through standard kubernetes yaml manifests.
-
-#### Operator Lifecycle Manager
-
-The Operator Lifecycle Manager, or OLM, is the preferred method. It's simple, faster and cleaner. <em> OLM extends Kubernetes to provide a declarative way to install, manage, and upgrade Operators and their dependencies in a cluster. </em> It manages the available operators using catalogs, it takes care of automatic updates and dependencies, has a discover mechanism to advertise services provided by available operators, prevents conflicts if two operators try to use the same API, for example, and provides a nice way to build declarative UI controls to configure operator services. OLM comes installed by default in Openshift 4.
-
-If want to install OLM in a kubernetes cluster you can try the [install guide][olm_install_guide].
-
-#### Install Methods:
-
-[Openshift Embedded Operator Hub][openshift_olm_install]
-
-[Openshift Manual Install][openshift_manual_install]
-
-[Kubernetes OLM Install][k8s_olm_install]
-
-[Kubernetes Manual Install][k8s_manual_Install]
-
-
-### Usage 
-
-To create a new NSM custom resource, after deploying the operator itself, use the CR manifest below. Here we have an example with the Vector Packet Processing as a forwarding plane for nsm.
+Step 1 - To install the nsm-operator with all its denpendencies such as spire run:
 
 ```
-kubectl apply -f deploy/crds/nsm.networkservicemesh.io_v1alpha1_nsm_cr.yaml
-```
-Now we should see something like this:
-```
-oc get pods -n nsm
-
-NAME                                    READY   STATUS    RESTARTS   AGE
-nsm-admission-webhook-b54cb4545-spt42   1/1     Running   0          6m58s
-nsm-operator-794d58d4f8-n7tgj           1/1     Running   0          10m
-nsm-vpp-forwarder-bh8nv                 1/1     Running   0          6m57s
-nsm-vpp-forwarder-blrfb                 1/1     Running   0          6m57s
-nsm-vpp-forwarder-mrmgl                 1/1     Running   0          6m57s
-nsmgr-jwrbt                             3/3     Running   0          6m57s
-nsmgr-s5tg2                             3/3     Running   0          6m57s
-nsmgr-xfdf8                             3/3     Running   0          6m57s
+make deploy
 ```
 
-| NOTE: nsm operator doesn't support the use of secure mode, aka spire, on Openshift yet. Planned for release 0.0.2. Jaegger tracing option is currently under development for both kubernetes and openshift as well. |
-| --- |
+That command will create the NSM namespace, install spire using the helm chart present on scripts/spire, configure spire and register the nsm-operator service account and namespace on spire and finally install all the necessary RBAC manifests with the nsm-operator deployment.
 
-After that, we have the basic network service mesh control plane and forwarding plan in place. That's the moment we can start to play with network services examples. 
+*** Please remark that for OpenShift both nsm-operator and client applications need priviledged security contexts and security context constraints to make it work. ***
 
-First install the nsm helm repo to the cluster: `helm repo add nsm https://helm.nsm.dev/`
+Step 2 - Install an NSM sample instance:
 
-Then check the nsm [official examples](https://github.com/networkservicemesh/networkservicemesh/blob/master/docs/guide-quickstart.md#run) and the [community examples](https://github.com/networkservicemesh/examples) and the official instructions as well.
+You can find an NSM custom resource example under config/samples/nsm_v1alpha1_nsm.yaml
 
+Here is how it looks like:
+```
+apiVersion: nsm.networkservicemesh.io/v1alpha1
+kind: NSM
+metadata:
+  name: nsm-sample
+  namespace: nsm
+spec:
+  tag: v1.0.0
+  nsmPullPolicy: IfNotPresent
 
-### Contributing
+  registry: ghcr.io
+  organization: networkservicemesh
 
-Anyone interested in contributing to the nsm-operator is welcomed and 
-should start by reviewing the [development][docs_dev] documentation.
+  registryMemoryImage: cmd-registry-memory
+  nsmgrImage: cmd-nsmgr
+  
+  # Forwarding Plane Configs
+  forwardingPlaneName: vpp
+  forwardingPlaneImage: cmd-forwarder-vpp
 
-For any questions you can reach out to us on the CNCF slack cloud-native.slack.com. Take a look at the channels below and feel free to send me messages using `@alexandre menezes` there.
+```
 
-[![Slack Channel](https://img.shields.io/badge/Slack:-%23nsm%20on%20CNCF%20Slack-blue.svg?style=plastic&logo=slack)](https://cloud-native.slack.com/messages/CHQNNUPN1/)
+You can deploy it after the operator is deployed by running:
 
-[![Slack Channel](https://img.shields.io/badge/Slack:-%23nsm--dev%20on%20CNCF%20Slack-blue.svg?style=plastic&logo=slack)](https://cloud-native.slack.com/messages/CHSKJ4849/)
+```
+kubectl apply -f config/samples/nsm_v1alpha1_nsm.yaml
+```
 
-[![Slack Invite](https://img.shields.io/badge/Slack-CNCF%20Slack%20Invite-blue.svg?style=plastic&logo=slack)](https://slack.cncf.io/)
+With the CR in place it's possible to check the nsm namespace for it's workloads:
+
+```
+kubectl get pods -n nsm
+
+NAME                            READY   STATUS    RESTARTS   AGE
+nsm-operator-866f4ff5c8-j6gc8   1/1     Running   0          53s
+nsm-registry-c84c97c4c-2mdzs    1/1     Running   0          8s
+nsmgr-cqgtw                     1/1     Running   0          8s
+nsmgr-fss6h                     1/1     Running   0          8s
+nsmgr-ns5tz                     1/1     Running   0          8s
+vpp-2wx56                       1/1     Running   0          8s
+vpp-8qtjx                       1/1     Running   0          8s
+vpp-gv56g                       1/1     Running   0          8s
+```
+
+Step 3 - There is a sample ICMP responder in a helm chart format that can be run as below:
+
+```
+helm install icmp-responder config/samples/application -n nsm
+
+NAME: icmp-responder
+LAST DEPLOYED: Fri Dec 17 10:39:51 2021
+NAMESPACE: nsm
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+```
+You should see 2 other Pods running in the nsm namespace:
+
+```
+NAME                            READY   STATUS    RESTARTS   AGE
+nsc-kernel-6b5d76f6bc-rk74g     1/1     Running   0          46s
+nse-kernel-5579898565-6h8zh     1/1     Running   0          46s
+nsm-operator-866f4ff5c8-j6gc8   1/1     Running   0          4m55s
+nsm-registry-c84c97c4c-2mdzs    1/1     Running   0          4m10s
+nsmgr-cqgtw                     1/1     Running   0          4m10s
+nsmgr-fss6h                     1/1     Running   0          4m10s
+nsmgr-ns5tz                     1/1     Running   0          4m10s
+vpp-2wx56                       1/1     Running   0          4m10s
+vpp-8qtjx                       1/1     Running   0          4m10s
+vpp-gv56g                       1/1     Running   0          4m10s
+```
+
+You can check if they succeeded by entering the pods as below:
+
+```
+kubectl exec -it nsc-kernel-6b5d76f6bc-rk74g -n nsm -- /bin/sh
+
+/ # 
+```
+
+Check the presence of a secondary network provided by NSM:
+```
+/ # ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+3: eth0@if34: <BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN> mtu 8951 qdisc noqueue state UP 
+    link/ether 0a:58:0a:81:02:17 brd ff:ff:ff:ff:ff:ff
+    inet 10.129.2.23/23 brd 10.129.3.255 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::7018:ebff:fe64:85c6/64 scope link 
+       valid_lft forever preferred_lft forever
+36: nsm@if35: <BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN> mtu 8951 qdisc noqueue state UP qlen 1000
+    link/ether 6e:57:10:17:f7:8a brd ff:ff:ff:ff:ff:ff
+    inet 169.254.0.1/32 scope global nsm
+       valid_lft forever preferred_lft forever
+    inet6 fe80::6c57:10ff:fe17:f78a/64 scope link 
+       valid_lft forever preferred_lft forever
+```
+
+And finally ping the endpoint using the endpoint ip address:
+```
+/ # ping 169.254.0.0
+PING 169.254.0.0 (169.254.0.0): 56 data bytes
+64 bytes from 169.254.0.0: seq=0 ttl=64 time=1.279 ms
+64 bytes from 169.254.0.0: seq=1 ttl=64 time=0.579 ms
+64 bytes from 169.254.0.0: seq=2 ttl=64 time=0.543 ms
+64 bytes from 169.254.0.0: seq=3 ttl=64 time=0.480 ms
+64 bytes from 169.254.0.0: seq=4 ttl=64 time=0.542 ms
+^C
+```
+
+#### Cleanup
+
+Delete the client application:
+```
+helm delete icmp-responder -n nsm
+```
+
+Delete the nsm CR:
+```
+kubectl delete nsm nsm-sample -n nsm
+```
+
+Delete nsm-operator and all its dependencies:
+```
+make undeploy
+```
 
 #### CNCF Code of Conduct:
   * The Network Service Mesh community follows the [CNCF Community Code of Conduct](https://github.com/cncf/foundation/blob/master/code-of-conduct.md).

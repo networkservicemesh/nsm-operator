@@ -18,8 +18,8 @@ resources:
 - ../crd
 - ../rbac
 - ../manager
-- ../nsm-requirements
+# - ../nsm-requirements
 images:
 - name: controller
   newName: quay.io/acmenezes/nsm-operator
-  newTag: v0.0.4-8
+  newTag: v0.0.3

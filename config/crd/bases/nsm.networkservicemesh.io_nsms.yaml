@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: (unknown)
+    controller-gen.kubebuilder.io/version: v0.7.0
   creationTimestamp: null
   name: nsms.nsm.networkservicemesh.io
 spec:
@@ -14,7 +14,7 @@ spec:
     listKind: NSMList
     plural: nsms
     singular: nsm
-  scope: Cluster
+  scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
@@ -41,16 +41,21 @@ spec:
               forwardingPlaneName:
                 description: Forwarding plane configs
                 type: string
-              insecure:
-                description: nsmgr configs true or false
-                type: boolean
+              nsmPullPolicy:
+                description: PullPolicy describes a policy for if/when to pull a container
+                  image
+                type: string
+              nsmgrImage:
+                type: string
+              registryMemoryImage:
+                type: string
               version:
-                description: Version field for reference on Openshift UI
+                description: tag represents the desired nsm version
                 type: string
             required:
             - forwardingPlaneImage
             - forwardingPlaneName
-            - insecure
+            - nsmPullPolicy
             - version
             type: object
           status:

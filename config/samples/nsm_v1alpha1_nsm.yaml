@@ -2,20 +2,12 @@ apiVersion: nsm.networkservicemesh.io/v1alpha1
 kind: NSM
 metadata:
   name: nsm-sample
-  namespace: nsm-system
+  namespace: nsm
 spec:
-  # INSECURE env var
-  insecure: true
-
+  version: v1.1.0
+  nsmPullPolicy: IfNotPresent
+  
   # Forwarding Plane Configs
   forwardingPlaneName: vpp
-  forwardingPlaneImage: vppagent-forwarder
+  forwardingPlaneImage: ghcr.io/networkservicemesh/cmd-forwarder-vpp
 
-  # Version field for Openshift UI
-  version: "latest"
-
-  # Enable Spire
-  # spire: "false"
-
-  # Enable Jaeger Tracing
-  # jaegerTracing: "false"
