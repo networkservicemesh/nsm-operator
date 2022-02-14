@@ -8,6 +8,9 @@ spec:
   nsmPullPolicy: IfNotPresent
   
   # Forwarding Plane Configs
-  forwardingPlaneName: vpp
-  forwardingPlaneImage: ghcr.io/networkservicemesh/cmd-forwarder-vpp
+  forwardingPlanes:
+    - Name: vpp
+      Image: ghcr.io/networkservicemesh/cmd-forwarder-vpp:v1.1.0
+    - Name: vlan
+      Image: registry.nordix.org/cloud-native/nsm/forwarder-vlan:latest      
 
