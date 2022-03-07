@@ -102,7 +102,7 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	objectMeta = setObjectMeta("nsm-registry-svc", "nsm", map[string]string{"app": "nsm"})
 	r.reconcileResource(r.serviceForNsmRegistry, nsm, svcForRegistry, objectMeta)
 
-	for _, fp := range nsm.Spec.ForwardingPlanes {
+	for _, fp := range nsm.Spec.Forwarders {
 		// Reconcile Daemonset for forwarder
 		dsForFP := &appsv1.DaemonSet{}
 		objectMeta = setObjectMeta(fp.Name, "nsm", map[string]string{"app": "nsm"})

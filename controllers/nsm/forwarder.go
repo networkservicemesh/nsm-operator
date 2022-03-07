@@ -98,7 +98,7 @@ func (r *NSMReconciler) deamonSetForForwardingPlane(nsm *nsmv1alpha1.NSM, object
 
 func getForwarderImage(nsm *nsmv1alpha1.NSM, name string) string {
 
-	for _, pf := range nsm.Spec.ForwardingPlanes {
+	for _, pf := range nsm.Spec.Forwarders {
 		if pf.Name == name {
 			return pf.Image
 		}

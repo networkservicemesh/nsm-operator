@@ -36,15 +36,15 @@ spec:
           spec:
             description: NSMSpec defines the desired state of NSM
             properties:
-              forwardingPlanes:
+              forwarders:
                 items:
                   properties:
                     Image:
-                      description: Image string for the forwarding plane This must
-                        be a complete image path with tag
+                      description: Forwarder image string (must be a complete image
+                        path with tag)
                       type: string
                     Name:
-                      description: Forwarding plane configs
+                      description: Forwarder descriptive name
                       type: string
                   required:
                   - Image
@@ -63,7 +63,7 @@ spec:
                 description: tag represents the desired nsm version
                 type: string
             required:
-            - forwardingPlanes
+            - forwarders
             - nsmPullPolicy
             - version
             type: object

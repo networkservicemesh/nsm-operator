@@ -21,11 +21,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type ForwardingPlane struct {
-	// Forwarding plane configs
+type Forwarder struct {
+	// Forwarder descriptive name
 	Name string `json:"Name"`
-	// Image string for the forwarding plane
-	// This must be a complete image path with tag
+	// Forwarder image string
+	// (must be a complete image path with tag)
 	Image string `json:"Image"`
 }
 
@@ -36,7 +36,7 @@ type NSMSpec struct {
 	NsmPullPolicy       corev1.PullPolicy `json:"nsmPullPolicy"`
 	RegistryMemoryImage string            `json:"registryMemoryImage,omitempty"`
 	NsmgrImage          string            `json:"nsmgrImage,omitempty"`
-	ForwardingPlanes    []ForwardingPlane `json:"forwardingPlanes"`
+	Forwarders          []Forwarder       `json:"forwarders"`
 }
 
 // NSMPhase is the type for the operator phases
