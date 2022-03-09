@@ -38,8 +38,8 @@ func (r *NSMReconciler) deamonSetForForwardingPlane(nsm *nsmv1alpha1.NSM, object
 
 						// forwarding plane container
 						{
-							Name:            nsm.Spec.ForwardingPlaneName,
-							Image:           nsm.Spec.ForwardingPlaneImage + ":" + nsm.Spec.Version,
+							Name:            objectMeta.Name,
+							Image:           getForwarderImage(nsm, objectMeta.Name),
 							ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,
@@ -94,4 +94,14 @@ func (r *NSMReconciler) deamonSetForForwardingPlane(nsm *nsmv1alpha1.NSM, object
 	// Set NSM instance as the owner and controller
 	controllerutil.SetControllerReference(nsm, daemonset, r.Scheme)
 	return daemonset
+}
+
+func getForwarderImage(nsm *nsmv1alpha1.NSM, name string) string {
+
+	for _, pf := range nsm.Spec.Forwarders {
+		if pf.Name == name {
+			return pf.Image
+		}
+	}
+	return ""
 }

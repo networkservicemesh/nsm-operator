@@ -8,6 +8,6 @@ spec:
   nsmPullPolicy: IfNotPresent
   
   # Forwarding Plane Configs
-  forwardingPlaneName: vpp
-  forwardingPlaneImage: ghcr.io/networkservicemesh/cmd-forwarder-vpp
-
+  forwarders:
+    - Name: vpp
+      Image: ghcr.io/networkservicemesh/cmd-forwarder-vpp:v1.1.0
