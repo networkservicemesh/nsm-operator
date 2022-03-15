@@ -37,6 +37,8 @@ BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # Image URL to use all building/pushing image targets
 IMG ?= quay.io/acmenezes/nsm-operator:v0.0.3-5
+BUILDER ?= podman
+
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
 
@@ -96,11 +98,11 @@ build: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
-podman-build:
-	podman build . -t ${IMG}
+container-build:
+	${BUILDER} build . -t ${IMG}
 
-podman-push: ## Push docker image with the manager.
-	podman push ${IMG}
+container-push: ## Push docker image with the manager.
+	${BUILDER} push ${IMG}
 
 ##@ Deployment
 

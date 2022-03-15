@@ -5,13 +5,42 @@
 
 A Kubernetes Operator for Installing and Managing Network Service Meshes
 
-#### Overview
+### Overview
 
 The Network Service Mesh Operator is a tool to install and manage the [Network Service Mesh][nsm_home] application which <em> is a novel approach solving complicated L2/L3 use cases in Kubernetes that are tricky to address with the existing Kubernetes Network Model. Inspired by Istio, Network Service Mesh maps the concept of a Service Mesh to L2/L3 payloads as part of an attempt to re-imagine NFV in a Cloud-native way! </em>. To  better understand the network service meshes take a look at [what is nsm][https://networkservicemesh.io/].
 
-The operator is a single pod workload that automates operational human knowledge behind the scenes to create the service mesh infrastructure components deploying a webhook and daemonsets with the network service managers and forwarding plane workloads taking the configuration from the Custom Resource manifest created specifically to be used with the operator. It aims to be platform independed and for such should run well in any kubernetes distribution.
+The operator is a single pod workload that automates operational human knowledge behind the scenes to create the service mesh infrastructure components such as network service managers, forwarders and registries taking that configuration from a single kubernetes custom resource called NSM. It aims to be platform independent and as such should run well in any kubernetes distribution.
 
-#### Installation Steps:
+### Features Available
+
+For Network Service Mesh version 1.2.0 this release allows the user to run NSM infrastructure with multiple forwarders just by declaring a forwarder list, like below, with their respective images on the Custom Resource manifest.
+
+```
+...
+  forwarders:
+    - Name: vpp
+      Image: ghcr.io/networkservicemesh/cmd-forwarder-vpp:v1.2.0
+    - Name: myCustomForwarder
+      Image: myregistry.path/myimage:mytag
+...
+```
+
+### Community Meeting and How to Contribute
+
+We have meetings regularly on Wednesdays at 10:30am EST. Feel free to join!
+
+nsm-operator community meeting <br>
+Wednesdays at 10:30 – 11:30am Eastern Time <br>
+Google Meet joining info <br>
+Video call link: https://meet.google.com/unf-mapk-skw <br>
+
+For suggesting new features feel free to submit new issues. For contributing with code please fork the project and commit your changes on a topic branch. When ready, open a Pull Request.
+
+For developing, debugging and building the operator check the [contributor's guide](docs/contribute.md).
+
+### Example:
+
+A make target called `deploy` is available to install nsm and all its dependencies.
 
 Step 1 - To install the nsm-operator with all its denpendencies such as spire run:
 
@@ -20,6 +49,14 @@ make deploy
 ```
 
 That command will create the NSM namespace, install spire using the helm chart present on scripts/spire, configure spire and register the nsm-operator service account and namespace on spire and finally install all the necessary RBAC manifests with the nsm-operator deployment.
+
+You should see something like this:
+
+```
+kubectl get pods
+NAME                            READY   STATUS    RESTARTS   AGE
+nsm-operator-7c54c77c5b-9zx44   1/1     Running   0          15m
+```
 
 *** Please remark that for OpenShift both nsm-operator and client applications need priviledged security contexts and security context constraints to make it work. ***
 
@@ -35,18 +72,13 @@ metadata:
   name: nsm-sample
   namespace: nsm
 spec:
-  tag: v1.0.0
+  version: v1.2.0
   nsmPullPolicy: IfNotPresent
-
-  registry: ghcr.io
-  organization: networkservicemesh
-
-  registryMemoryImage: cmd-registry-memory
-  nsmgrImage: cmd-nsmgr
   
   # Forwarding Plane Configs
-  forwardingPlaneName: vpp
-  forwardingPlaneImage: cmd-forwarder-vpp
+  forwarders:
+    - Name: vpp
+      Image: ghcr.io/networkservicemesh/cmd-forwarder-vpp:v1.2.0
 
 ```
 
@@ -143,7 +175,7 @@ PING 169.254.0.0 (169.254.0.0): 56 data bytes
 ^C
 ```
 
-#### Cleanup
+### Cleanup
 
 Delete the client application:
 ```
@@ -159,21 +191,5 @@ Delete nsm-operator and all its dependencies:
 ```
 make undeploy
 ```
-
-#### CNCF Code of Conduct:
+### CNCF Code of Conduct:
   * The Network Service Mesh community follows the [CNCF Community Code of Conduct](https://github.com/cncf/foundation/blob/master/code-of-conduct.md).
-
-### License
-
-nsm-operator is released under the Apache 2.0 license. Please check the [LICENSE][license_file] file for details.
-
-[nsm_home]:https://networkservicemesh.io
-[nsm_whatis]:https://github.com/networkservicemesh/networkservicemesh/blob/master/docs/what-is-nsm.md
-[docs_dev]:./docs/development.md
-[license_file]:./LICENSE
-[requirements]:./docs/requirements.md
-[olm_install_guide]:https://github.com/operator-framework/operator-lifecycle-manager/blob/master/doc/install/install.md
-[openshift_olm_install]:./docs/openshift_olm_install.md
-[openshift_manual_install]:./docs/openshift_manual_install.md
-[k8s_olm_install]:./docs/k8s_olm_install.md
-[k8s_manual_install]:./docs/k8s_manual_install.md
