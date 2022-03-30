@@ -1,0 +1,6 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: registry-k8s-sa
+  namespace: nsm

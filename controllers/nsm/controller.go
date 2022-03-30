@@ -51,7 +51,8 @@ type NSMReconciler struct {
 
 const (
 	serviceAccountName  string = "nsm-operator"
-	registryMemoryImage string = "ghcr.io/networkservicemesh/cmd-registry-memory"
+	registryMemoryImage string = "ghcr.io/networkservicemesh/cmd-registry-memory:latest"
+	registryK8sImage    string = "ghcr.io/networkservicemesh/ci/cmd-registry-k8s:latest"
 	nsmgrImage          string = "ghcr.io/networkservicemesh/cmd-nsmgr"
 )
 
@@ -76,8 +77,14 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return reconcile.Result{}, err
 	}
 
-	if nsm.Spec.RegistryMemoryImage == "" {
-		nsm.Spec.RegistryMemoryImage = registryMemoryImage
+	// setting up deafult images for registry
+	if nsm.Spec.Registry.Image == "" {
+		switch nsm.Spec.Registry.Type {
+		case "memory":
+			nsm.Spec.Registry.Image = registryMemoryImage
+		case "k8s":
+			nsm.Spec.Registry.Image = registryK8sImage
+		}
 	}
 
 	if nsm.Spec.NsmgrImage == "" {
@@ -108,6 +115,7 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		objectMeta = setObjectMeta(fp.Name, "nsm", map[string]string{"app": "nsm"})
 		r.reconcileResource(r.deamonSetForForwardingPlane, nsm, dsForFP, objectMeta)
 	}
+
 	// Reconcile Daemonset for nsmgr
 	dsForNsmgr := &appsv1.DaemonSet{}
 	objectMeta = setObjectMeta("nsmgr", "nsm", map[string]string{"app": "nsm"})

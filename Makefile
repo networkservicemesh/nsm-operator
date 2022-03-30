@@ -36,7 +36,7 @@ IMAGE_TAG_BASE ?= quay.io/acmenezes/nsm-operator
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # Image URL to use all building/pushing image targets
-IMG ?= quay.io/acmenezes/nsm-operator:v0.0.3-5
+IMG ?= quay.io/acmenezes/nsm-operator:v1.2.0
 BUILDER ?= podman
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
@@ -130,6 +130,10 @@ delete-spire:
 	 kubectl -n spire exec spire-server-0 -- /opt/spire/bin/spire-server entry delete -entryID $$entry; \
 	done
 	helm delete spire -n nsm
+
+# RBAC for registry-k8s
+rbac-for-registry-k8s:
+	kubectl apply -f config/registry-k8s/
 
 ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 deploy: nsm-namespace spire manifests kustomize 
