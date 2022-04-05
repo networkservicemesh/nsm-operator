@@ -19,13 +19,13 @@ package controllers
 import (
 	"context"
 
-	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	nsmv1alpha1 "github.com/networkservicemesh/nsm-operator/apis/nsm/v1alpha1"
@@ -34,7 +34,6 @@ import (
 // NSMReconciler reconciles a NSM object
 type NSMReconciler struct {
 	client.Client
-	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
@@ -57,10 +56,9 @@ const (
 )
 
 // Reconcile for NSMs
-func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
-	_ = context.Background()
-	reqLogger := r.Log.WithValues("nsm", req.NamespacedName)
+	Log := log.FromContext(ctx).WithValues("nsm", req.NamespacedName)
 
 	// Fetch the NSM instance
 	nsm := &nsmv1alpha1.NSM{}
@@ -77,6 +75,14 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return reconcile.Result{}, err
 	}
 
+	// Update the status field to creating
+	if nsm.Status.Phase == nsmv1alpha1.NSMPhaseInitial {
+		nsm.Status.Phase = nsmv1alpha1.NSMPhaseCreating
+		if updateErr := r.Client.Status().Update(context.TODO(), nsm); updateErr != nil {
+			Log.Info("Failed to update status", "Error", err.Error())
+		}
+	}
+
 	// setting up deafult images for registry
 	if nsm.Spec.Registry.Image == "" {
 		switch nsm.Spec.Registry.Type {
@@ -89,14 +95,6 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	if nsm.Spec.NsmgrImage == "" {
 		nsm.Spec.NsmgrImage = nsmgrImage
-	}
-
-	// Update the status field to creating
-	if nsm.Status.Phase == nsmv1alpha1.NSMPhaseInitial {
-		nsm.Status.Phase = nsmv1alpha1.NSMPhaseCreating
-		if updateErr := r.Client.Status().Update(context.TODO(), nsm); updateErr != nil {
-			reqLogger.Info("Failed to update status", "Error", err.Error())
-		}
 	}
 
 	// Reconcile Deployment for registry-memory
@@ -125,7 +123,7 @@ func (r *NSMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if nsm.Status.Phase != nsmv1alpha1.NSMPhaseRunning {
 		nsm.Status.Phase = nsmv1alpha1.NSMPhaseRunning
 		if updateErr := r.Client.Status().Update(context.TODO(), nsm); updateErr != nil {
-			reqLogger.Info("Failed to update status", "Error", err.Error())
+			Log.Info("Failed to update status", "Error", err.Error())
 		}
 	}
 

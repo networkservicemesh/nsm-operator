@@ -19,9 +19,6 @@ import (
 	"flag"
 	"os"
 
-	configv1 "github.com/openshift/api/config/v1"
-	networkv1 "github.com/openshift/api/network/v1"
-	"github.com/prometheus/common/log"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -72,22 +69,9 @@ func main() {
 
 	if err = (&nsmcontroller.NSMReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("NSM"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NSM")
-		os.Exit(1)
-	}
-
-	// Adding the OpenShift networkv1
-	if err := networkv1.AddToScheme(mgr.GetScheme()); err != nil {
-		log.Error(err, "")
-		os.Exit(1)
-	}
-
-	// Adding the OpenShift configv1
-	if err := configv1.AddToScheme(mgr.GetScheme()); err != nil {
-		log.Error(err, "")
 		os.Exit(1)
 	}
 
