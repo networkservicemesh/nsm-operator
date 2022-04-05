@@ -57,14 +57,27 @@ spec:
                 type: string
               nsmgrImage:
                 type: string
-              registryMemoryImage:
-                type: string
+              registry:
+                properties:
+                  image:
+                    description: Registry Image with tag
+                    type: string
+                  type:
+                    description: Registry type
+                    enum:
+                    - k8s
+                    - memory
+                    type: string
+                required:
+                - type
+                type: object
               version:
                 description: tag represents the desired nsm version
                 type: string
             required:
             - forwarders
             - nsmPullPolicy
+            - registry
             - version
             type: object
           status:

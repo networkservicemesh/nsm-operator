@@ -29,14 +29,22 @@ type Forwarder struct {
 	Image string `json:"Image"`
 }
 
+type Registry struct {
+	// Registry type
+	// +kubebuilder:validation:Enum=k8s;memory
+	Type string `json:"type"`
+	// Registry Image with tag
+	Image string `json:"image,omitempty"`
+}
+
 // NSMSpec defines the desired state of NSM
 type NSMSpec struct {
 	// tag represents the desired nsm version
-	Version             string            `json:"version"`
-	NsmPullPolicy       corev1.PullPolicy `json:"nsmPullPolicy"`
-	RegistryMemoryImage string            `json:"registryMemoryImage,omitempty"`
-	NsmgrImage          string            `json:"nsmgrImage,omitempty"`
-	Forwarders          []Forwarder       `json:"forwarders"`
+	Version       string            `json:"version"`
+	NsmPullPolicy corev1.PullPolicy `json:"nsmPullPolicy"`
+	Registry      Registry          `json:"registry"`
+	NsmgrImage    string            `json:"nsmgrImage,omitempty"`
+	Forwarders    []Forwarder       `json:"forwarders"`
 }
 
 // NSMPhase is the type for the operator phases

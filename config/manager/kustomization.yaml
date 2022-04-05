@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: quay.io/acmenezes/nsm-operator
-  newTag: v0.0.3-5
+  newTag: v1.2.0
