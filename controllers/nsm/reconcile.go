@@ -6,15 +6,15 @@ import (
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
 	nsmv1alpha1 "github.com/networkservicemesh/nsm-operator/apis/nsm/v1alpha1"
 )
 
-type createResourceFunc func(nsm *nsmv1alpha1.NSM, objectMeta metav1.ObjectMeta) runtime.Object
+type createResourceFunc func(nsm *nsmv1alpha1.NSM, objectMeta metav1.ObjectMeta) client.Object
 
 func setObjectMeta(name string, namespace string, labels map[string]string) metav1.ObjectMeta {
 	objectMeta := metav1.ObjectMeta{
@@ -28,7 +28,7 @@ func setObjectMeta(name string, namespace string, labels map[string]string) meta
 func (r *NSMReconciler) reconcileResource(
 	createResource createResourceFunc,
 	nsm *nsmv1alpha1.NSM,
-	resource runtime.Object,
+	resource client.Object,
 	objectMeta metav1.ObjectMeta) error {
 
 	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: objectMeta.Name, Namespace: objectMeta.Namespace}, resource)

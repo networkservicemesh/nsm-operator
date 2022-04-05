@@ -5,11 +5,11 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *NSMReconciler) deploymentForRegistryMemory(nsm *nsmv1alpha1.NSM, objectMeta metav1.ObjectMeta) runtime.Object {
+func (r *NSMReconciler) deploymentForRegistryMemory(nsm *nsmv1alpha1.NSM, objectMeta metav1.ObjectMeta) client.Object {
 
 	privmode := true
 
