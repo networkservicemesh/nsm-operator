@@ -25,6 +25,14 @@ func setObjectMeta(name string, namespace string, labels map[string]string) meta
 	return objectMeta
 }
 
+func newObjectMeta(name string, namespace string, labels map[string]string) metav1.ObjectMeta {
+	return metav1.ObjectMeta{
+		Name:      name,
+		Namespace: namespace,
+		Labels:    labels,
+	}
+}
+
 func (r *NSMReconciler) reconcileResource(
 	createResource createResourceFunc,
 	nsm *nsmv1alpha1.NSM,

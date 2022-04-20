@@ -26,7 +26,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	nsmv1alpha1 "github.com/networkservicemesh/nsm-operator/apis/nsm/v1alpha1"
 )
@@ -69,10 +68,10 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			return reconcile.Result{}, nil
+			return ctrl.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
+		return ctrl.Result{}, err
 	}
 
 	// Update the status field to creating
@@ -97,14 +96,29 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		nsm.Spec.NsmgrImage = nsmgrImage
 	}
 
+	reconcilers := []Reconciler{
+		NewRegistryReconciler(r.Client, Log, r.Scheme),
+		// NewRegistryServiceReconciler(r.Client, Log, r.Scheme),
+		// NewForwarderReconciler(r.Client, Log, r.Scheme),
+		// NewNsmgrReconciler(r.Client, Log, r.Scheme),
+		// NewStatusReconciler(r.Client, Log, r.Scheme),
+	}
+
 	// Reconcile Deployment for registry-memory
-	deploymentForNsmRegistry := &appsv1.Deployment{}
-	objectMeta := setObjectMeta("nsm-registry", "nsm", map[string]string{"app": "nsm"})
-	r.reconcileResource(r.deploymentForRegistryMemory, nsm, deploymentForNsmRegistry, objectMeta)
+	// deploymentForNsmRegistry := &appsv1.Deployment{}
+	// objectMeta := setObjectMeta("nsm-registry", "nsm", map[string]string{"app": "nsm"})
+	// r.reconcileResource(r.deploymentForRegistryMemory, nsm, deploymentForNsmRegistry, objectMeta)
+	for _, r := range reconcilers {
+		err := r.Reconcile(ctx, nsm)
+		if err != nil {
+			Log.Error(err, "error while reconciling")
+			return ctrl.Result{}, err
+		}
+	}
 
 	// Reconcile Deployment for registry-service
 	svcForRegistry := &corev1.Service{}
-	objectMeta = setObjectMeta("nsm-registry-svc", "nsm", map[string]string{"app": "nsm"})
+	objectMeta := setObjectMeta("nsm-registry-svc", "nsm", map[string]string{"app": "nsm"})
 	r.reconcileResource(r.serviceForNsmRegistry, nsm, svcForRegistry, objectMeta)
 
 	for _, fp := range nsm.Spec.Forwarders {
