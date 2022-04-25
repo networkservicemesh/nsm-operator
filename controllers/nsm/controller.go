@@ -98,16 +98,13 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	reconcilers := []Reconciler{
 		NewRegistryReconciler(r.Client, Log, r.Scheme),
-		// NewRegistryServiceReconciler(r.Client, Log, r.Scheme),
-		// NewForwarderReconciler(r.Client, Log, r.Scheme),
+		NewRegistryServiceReconciler(r.Client, Log, r.Scheme),
+		NewForwarderReconciler(r.Client, Log, r.Scheme),
 		// NewNsmgrReconciler(r.Client, Log, r.Scheme),
 		// NewStatusReconciler(r.Client, Log, r.Scheme),
 	}
 
-	// Reconcile Deployment for registry-memory
-	// deploymentForNsmRegistry := &appsv1.Deployment{}
-	// objectMeta := setObjectMeta("nsm-registry", "nsm", map[string]string{"app": "nsm"})
-	// r.reconcileResource(r.deploymentForRegistryMemory, nsm, deploymentForNsmRegistry, objectMeta)
+	// Call all reconcilers
 	for _, r := range reconcilers {
 		err := r.Reconcile(ctx, nsm)
 		if err != nil {
@@ -116,21 +113,9 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		}
 	}
 
-	// Reconcile Deployment for registry-service
-	svcForRegistry := &corev1.Service{}
-	objectMeta := setObjectMeta("nsm-registry-svc", "nsm", map[string]string{"app": "nsm"})
-	r.reconcileResource(r.serviceForNsmRegistry, nsm, svcForRegistry, objectMeta)
-
-	for _, fp := range nsm.Spec.Forwarders {
-		// Reconcile Daemonset for forwarder
-		dsForFP := &appsv1.DaemonSet{}
-		objectMeta = setObjectMeta(fp.Name, "nsm", map[string]string{"app": "nsm"})
-		r.reconcileResource(r.deamonSetForForwardingPlane, nsm, dsForFP, objectMeta)
-	}
-
 	// Reconcile Daemonset for nsmgr
 	dsForNsmgr := &appsv1.DaemonSet{}
-	objectMeta = setObjectMeta("nsmgr", "nsm", map[string]string{"app": "nsm"})
+	objectMeta := setObjectMeta("nsmgr", "nsm", map[string]string{"app": "nsm"})
 	r.reconcileResource(r.deamonSetForNSMGR, nsm, dsForNsmgr, objectMeta)
 
 	// Update Status field after creating all resources
