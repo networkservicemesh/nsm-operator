@@ -100,8 +100,7 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		NewRegistryReconciler(r.Client, Log, r.Scheme),
 		NewRegistryServiceReconciler(r.Client, Log, r.Scheme),
 		NewForwarderReconciler(r.Client, Log, r.Scheme),
-		// NewNsmgrReconciler(r.Client, Log, r.Scheme),
-		// NewStatusReconciler(r.Client, Log, r.Scheme),
+		NewNsmgrReconciler(r.Client, Log, r.Scheme),
 	}
 
 	// Call all reconcilers
@@ -112,11 +111,6 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			return ctrl.Result{}, err
 		}
 	}
-
-	// Reconcile Daemonset for nsmgr
-	dsForNsmgr := &appsv1.DaemonSet{}
-	objectMeta := setObjectMeta("nsmgr", "nsm", map[string]string{"app": "nsm"})
-	r.reconcileResource(r.deamonSetForNSMGR, nsm, dsForNsmgr, objectMeta)
 
 	// Update Status field after creating all resources
 	if nsm.Status.Phase != nsmv1alpha1.NSMPhaseRunning {

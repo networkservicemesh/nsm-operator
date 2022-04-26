@@ -44,10 +44,6 @@ func (r *RegistryServiceReconciler) Reconcile(ctx context.Context, nsm *nsmv1alp
 		}
 		return err
 	}
-
-	// If no error was encountered the object already exists
-	// at least with the same name within the same namespace
-	// an update/patch operation can be done here
 	r.Log.Info("nsm registry service already exists, skipping creation")
 	return nil
 }
