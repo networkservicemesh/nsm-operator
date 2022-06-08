@@ -1,15 +1,57 @@
 package controllers
 
 import (
+	"context"
+
+	"github.com/go-logr/logr"
 	nsmv1alpha1 "github.com/networkservicemesh/nsm-operator/apis/nsm/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *NSMReconciler) deamonSetForNSMGR(nsm *nsmv1alpha1.NSM, objectMeta metav1.ObjectMeta) client.Object {
+type NsmgrReconciler struct {
+	client.Client
+	Log    logr.Logger
+	Scheme *runtime.Scheme
+}
+
+func NewNsmgrReconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme) *NsmgrReconciler {
+	return &NsmgrReconciler{
+		Client: client,
+		Log:    log,
+		Scheme: scheme,
+	}
+}
+
+func (r *NsmgrReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NSM) error {
+
+	ds := &appsv1.DaemonSet{}
+	err := r.Client.Get(ctx, types.NamespacedName{Name: "nsmgr", Namespace: nsm.ObjectMeta.Namespace}, ds)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			ds = r.daemonSetForNSMGR(nsm)
+			err = r.Client.Create(context.TODO(), ds)
+			if err != nil {
+				r.Log.Error(err, "failed to create daemonset for nsm-registry")
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	r.Log.Info("nsm nsmgr daemonset already exists, skipping creation")
+	return nil
+}
+
+func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.DaemonSet {
+
+	objectMeta := newObjectMeta("nsmgr", "nsm", map[string]string{"app": "nsm"})
 
 	volType := corev1.HostPathDirectoryOrCreate
 	volTypeSpire := corev1.HostPathDirectory
