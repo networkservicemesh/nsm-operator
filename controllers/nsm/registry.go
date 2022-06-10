@@ -55,7 +55,7 @@ func (r *RegistryReconciler) DeploymentForRegistry(nsm *nsmv1alpha1.NSM) *appsv1
 
 	objectMeta := newObjectMeta("nsm-registry", "nsm", map[string]string{"app": "nsm"})
 
-	registryLabel := map[string]string{"nsm-component": "nsm-registry"}
+	registryLabel := map[string]string{"app": "nsm-registry"}
 
 	volTypeDirectory := corev1.HostPathDirectory
 
