@@ -19,7 +19,3 @@ resources:
 - ../rbac
 - ../manager
 # - ../nsm-requirements
-images:
-- name: controller
-  newName: quay.io/acmenezes/nsm-operator
-  newTag: v0.0.3

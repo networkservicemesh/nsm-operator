@@ -3,6 +3,8 @@
 # It should be run by config/default
 resources:
 - bases/nsm.networkservicemesh.io_nsms.yaml
+- networkservicemesh.io/crd-ns.yaml
+- networkservicemesh.io/crd-nse.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:
