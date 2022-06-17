@@ -30,9 +30,9 @@ For Network Service Mesh version 1.2.0 this release allows the user to run NSM i
 We have meetings regularly on Wednesdays at 10:30am EST. Feel free to join!
 
 nsm-operator community meeting <br>
-Wednesdays at 10:30 – 11:30am Eastern Time <br>
+Wednesdays, every two weeks at 10:30 – 11:30am Eastern Time <br>
 Google Meet joining info <br>
-Video call link: https://meet.google.com/unf-mapk-skw <br>
+Video call link: https://meet.google.com/axo-qusq-qkw <br>
 
 For suggesting new features feel free to submit new issues. For contributing with code please fork the project and commit your changes on a topic branch. When ready, open a Pull Request.
 
