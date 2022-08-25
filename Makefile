@@ -122,7 +122,8 @@ delete-nsm-namespace:
 spire:
 	cd scripts/spire && helm install spire . -n nsm
 	@echo "Waiting for spire to get ready..."
-	@sleep 10
+	@kubectl wait -n spire --timeout=2m --for=condition=ready pod -l app=spire-agent
+	@kubectl wait -n spire --timeout=1m --for=condition=ready pod -l app=spire-server
 	cd scripts/scripts && ./spire-config.sh && ./spire-entry.sh nsm-operator nsm
 
 delete-spire:
