@@ -2,3 +2,4 @@
 # Default values for nsm.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+IdentityTemplate : "ns/{{.Pod.Namespace}}/pod/{{.Pod.Name}}"
