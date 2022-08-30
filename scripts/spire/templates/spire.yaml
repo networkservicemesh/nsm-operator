@@ -572,5 +572,5 @@ data:
     add_svc_dns_names = true
     mode = "crd"
     webhook_enabled = true
-    identity_template = {{.Values.IdentityTemplate | quote}}
+    identity_template = "ns/{{"{{"}}.Pod.Namespace{{"}}"}}/pod/{{"{{"}}.Pod.Name{{"}}"}}"
     identity_template_label = "spiffe.io/spiffe-id"
