@@ -122,13 +122,15 @@ delete-nsm-namespace:
 spire:
 	cd scripts/spire && helm install spire . -n nsm
 	@echo "Waiting for spire to get ready..."
-	@sleep 10
+	@kubectl wait -n spire --timeout=2m --for=condition=ready pod -l app=spire-agent
+	@kubectl wait -n spire --timeout=1m --for=condition=ready pod -l app=spire-server
 	cd scripts/scripts && ./spire-config.sh && ./spire-entry.sh nsm-operator nsm
 
 delete-spire:
-	@for entry in $$(kubectl -n spire exec spire-server-0 -- /opt/spire/bin/spire-server entry show | grep 'Entry ID' | awk '{print $$4}'); do \
-	 kubectl -n spire exec spire-server-0 -- /opt/spire/bin/spire-server entry delete -entryID $$entry; \
+	@for entry in $$(kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry show | grep 'Entry ID' | awk '{print $$4}'); do \
+	 kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry delete -entryID $$entry; \
 	done
+	kubectl delete crd spiffeids.spiffeid.spiffe.io
 	helm delete spire -n nsm
 
 # RBAC for registry-k8s
