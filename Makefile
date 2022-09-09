@@ -120,22 +120,33 @@ delete-nsm-namespace:
 	kubectl delete ns nsm
 
 spire:
-	cd scripts/spire && helm install spire . -n nsm
+	cd scripts/spire && kubectl apply -f spire.yaml
 	@echo "Waiting for spire to get ready..."
 	@kubectl wait -n spire --timeout=2m --for=condition=ready pod -l app=spire-agent
 	@kubectl wait -n spire --timeout=1m --for=condition=ready pod -l app=spire-server
 	cd scripts/scripts && ./spire-config.sh && ./spire-entry.sh nsm-operator nsm
 
-delete-spire:
+spire-entries:
+	cd scripts/scripts && ./spire-config.sh && ./spire-entry.sh nsm-operator nsm
+
+delete-spire-entries:
 	@for entry in $$(kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry show | grep 'Entry ID' | awk '{print $$4}'); do \
 	 kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry delete -entryID $$entry; \
 	done
+
+delete-spire: delete-spire-entries
 	kubectl delete crd spiffeids.spiffeid.spiffe.io
-	helm delete spire -n nsm
+	kubectl delete ns spire
 
 # RBAC for registry-k8s
 rbac-for-registry-k8s:
 	kubectl apply -f config/registry-k8s/
+
+## Deploy controller to the K8s cluster specified in ~/.kube/config.
+## It does not contain spire-server and spire-agent deployment.
+deploy-no-spire: nsm-namespace spire-entries manifests kustomize 
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 deploy: nsm-namespace spire manifests kustomize 
@@ -144,6 +155,10 @@ deploy: nsm-namespace spire manifests kustomize
 
 delete-nsm-operator:
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
+
+## Undeploy controller from the K8s cluster specified in ~/.kube/config.
+## It does not contain spire-server and spire-agent deletion.
+undeploy-no-spire: delete-nsm-operator delete-spire-entries delete-nsm-namespace
 
 ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
 undeploy: delete-nsm-operator delete-spire delete-nsm-namespace

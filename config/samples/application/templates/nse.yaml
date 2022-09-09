@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: nse-kernel
+        "spiffe.io/spiffe-id": "true"
     spec:
       serviceAccountName: nsm-operator    
       containers:
@@ -22,6 +23,8 @@ spec:
           image: {{ .Values.registry }}/{{ .Values.organization }}/{{ .Values.nseImage }}:{{ .Values.tag }}
           imagePullPolicy: {{ .Values.pullPolicy }}
           env:
+            - name: NSM_CIDR_PREFIX
+              value: 172.16.1.100/31
             - name: SPIFFE_ENDPOINT_SOCKET
               value: unix:///run/spire/sockets/agent.sock
             - name: NSM_NAME
@@ -38,9 +41,12 @@ spec:
               mountPath: /var/lib/networkservicemesh
               readOnly: true
           resources:
-            limits:
-              memory: 40Mi
+            requests:
               cpu: 100m
+              memory: 40Mi
+            limits:
+              memory: 80Mi
+              cpu: 200m
       volumes:
         - name: spire-agent-socket
           hostPath:
