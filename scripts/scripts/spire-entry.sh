@@ -4,7 +4,7 @@ registerWorkload()
 {
     local serviceAccount="$1"
     local namespace="$2"
-    kubectl -n spire exec spire-server-0 -- \
+    kubectl -n spire exec spire-server-0 -c spire-server -- \
     /opt/spire/bin/spire-server entry create \
     -ttl 7200 \
     -spiffeID spiffe://example.org/ns/$namespace/sa/$serviceAccount \

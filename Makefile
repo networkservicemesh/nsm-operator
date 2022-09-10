@@ -119,12 +119,11 @@ nsm-namespace:
 delete-nsm-namespace:
 	kubectl delete ns nsm
 
-spire:
+deploy-spire:
 	cd scripts/spire && kubectl apply -f spire.yaml
 	@echo "Waiting for spire to get ready..."
 	@kubectl wait -n spire --timeout=2m --for=condition=ready pod -l app=spire-agent
 	@kubectl wait -n spire --timeout=1m --for=condition=ready pod -l app=spire-server
-	cd scripts/scripts && ./spire-config.sh && ./spire-entry.sh nsm-operator nsm
 
 spire-entries:
 	cd scripts/scripts && ./spire-config.sh && ./spire-entry.sh nsm-operator nsm
@@ -134,8 +133,15 @@ delete-spire-entries:
 	 kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry delete -entryID $$entry; \
 	done
 
-delete-spire: delete-spire-entries
+delete-spire:
 	kubectl delete crd spiffeids.spiffeid.spiffe.io
+	kubectl delete validatingwebhookconfiguration.admissionregistration.k8s.io/k8s-workload-registrar
+	kubectl delete clusterrole.rbac.authorization.k8s.io/k8s-workload-registrar-role
+	kubectl delete clusterrole.rbac.authorization.k8s.io/spire-agent-cluster-role
+	kubectl delete clusterrole.rbac.authorization.k8s.io/spire-server-trust-role
+	kubectl delete clusterrolebinding.rbac.authorization.k8s.io/k8s-workload-registrar-role-binding
+	kubectl delete clusterrolebinding.rbac.authorization.k8s.io/spire-agent-cluster-role-binding
+	kubectl delete clusterrolebinding.rbac.authorization.k8s.io/spire-server-trust-role-binding
 	kubectl delete ns spire
 
 # RBAC for registry-k8s
@@ -144,24 +150,22 @@ rbac-for-registry-k8s:
 
 ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 ## It does not contain spire-server and spire-agent deployment.
-deploy-no-spire: nsm-namespace spire-entries manifests kustomize
+deploy-nsm-operator: spire-entries nsm-namespace manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-deploy: nsm-namespace spire manifests kustomize
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | kubectl apply -f -
+deploy: deploy-spire deploy-nsm-operator
 
-delete-nsm-operator:
+delete-nsm-operator: delete-spire-entries
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
 ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
 ## It does not contain spire-server and spire-agent deletion.
-undeploy-no-spire: delete-nsm-operator delete-spire-entries delete-nsm-namespace
+undeploy-no-spire: delete-spire-entries delete-nsm-operator delete-nsm-namespace
 
 ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
-undeploy: delete-nsm-operator delete-spire delete-nsm-namespace
+undeploy: undeploy-no-spire delete-spire
 
 ##@ Build Dependencies
 
