@@ -126,15 +126,12 @@ deploy-spire:
 	@kubectl wait -n spire --timeout=1m --for=condition=ready pod -l app=spire-server
 
 spire-entries:
-#	cd scripts/scripts && ./spire-config.sh && ./spire-entry.sh nsm-operator nsm
-	echo "*** No SPIRE entries created ***"
+	cd scripts/scripts && ./spire-config.sh && ./spire-entry.sh nsm-operator nsm
 
 delete-spire-entries:
-#	@for entry in $$(kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry show | grep 'Entry ID' | awk '{print $$4}'); do \
-#	 kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry delete -entryID $$entry; \
-#	done
-	echo "*** No SPIRE entries deleted ***"
-
+	@for entry in $$(kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry show | grep 'Entry ID' | awk '{print $$4}'); do \
+	 kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry delete -entryID $$entry; \
+	done
 
 delete-spire:
 	kubectl delete crd spiffeids.spiffeid.spiffe.io
@@ -160,7 +157,7 @@ deploy-nsm-operator: spire-entries nsm-namespace manifests kustomize
 ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 deploy: deploy-spire deploy-nsm-operator
 
-delete-nsm-operator: delete-spire-entries
+delete-nsm-operator:
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
 ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
