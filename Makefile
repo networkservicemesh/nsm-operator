@@ -162,10 +162,10 @@ delete-nsm-operator:
 
 ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
 ## It does not contain spire-server and spire-agent deletion.
-undeploy-no-spire: delete-spire-entries delete-nsm-operator delete-nsm-namespace
+undeploy-nsm-operator: delete-spire-entries delete-nsm-operator delete-nsm-namespace
 
 ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
-undeploy: undeploy-no-spire delete-spire
+undeploy: undeploy-nsm-operator delete-spire
 
 ##@ Build Dependencies
 
