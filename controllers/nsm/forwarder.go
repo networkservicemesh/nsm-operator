@@ -60,7 +60,7 @@ func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, object
 	// mountPropagationMode := corev1.MountPropagationBidirectional
 	privmode := true
 
-	forwarderLabel := map[string]string{"app": "forwarder"}
+	forwarderLabel := map[string]string{"app": "forwarder", "spiffe.io/spiffe-id": "true"}
 	volTypeSpire := corev1.HostPathDirectory
 
 	daemonset := &appsv1.DaemonSet{

@@ -50,7 +50,7 @@ func (r *RegistryServiceReconciler) Reconcile(ctx context.Context, nsm *nsmv1alp
 
 func (r *RegistryServiceReconciler) serviceForNsmRegistry(nsm *nsmv1alpha1.NSM) *corev1.Service {
 
-	registryLabel := map[string]string{"app": "nsm-registry"}
+	registryLabel := map[string]string{"app": "nsm-registry", "spiffe.io/spiffe-id": "true"}
 
 	objectMeta := newObjectMeta("nsm-registry-svc", "nsm", map[string]string{"app": "nsm"})
 

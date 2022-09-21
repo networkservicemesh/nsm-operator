@@ -36,8 +36,10 @@ IMAGE_TAG_BASE ?= quay.io/acmenezes/nsm-operator
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # Image URL to use all building/pushing image targets
-IMG ?= quay.io/acmenezes/nsm-operator:v1.4.0
-BUILDER ?= podman
+#IMG ?= quay.io/acmenezes/nsm-operator:v1.4.0
+IMG ?= localhost:5001/nsm-operator:latest
+#BUILDER ?= podman
+BUILDER ?= docker
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
@@ -114,38 +116,30 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 # NSM Specific targets:
 nsm-namespace:
-	kubectl create ns nsm
+	@kubectl create ns nsm
 
 delete-nsm-namespace:
-	kubectl delete ns nsm
+	@kubectl delete ns nsm
 
 deploy-spire:
-	cd scripts/spire && kubectl apply -f spire.yaml
+	@kubectl apply -f config/spire/spire.yaml
 	@echo "Waiting for spire to get ready..."
 	@kubectl wait -n spire --timeout=2m --for=condition=ready pod -l app=spire-agent
 	@kubectl wait -n spire --timeout=1m --for=condition=ready pod -l app=spire-server
 
 undeploy-spire:
-	kubectl delete crd spiffeids.spiffeid.spiffe.io
-	kubectl delete validatingwebhookconfiguration.admissionregistration.k8s.io/k8s-workload-registrar
-	kubectl delete clusterrole.rbac.authorization.k8s.io/k8s-workload-registrar-role
-	kubectl delete clusterrole.rbac.authorization.k8s.io/spire-agent-cluster-role
-	kubectl delete clusterrole.rbac.authorization.k8s.io/spire-server-trust-role
-	kubectl delete clusterrolebinding.rbac.authorization.k8s.io/k8s-workload-registrar-role-binding
-	kubectl delete clusterrolebinding.rbac.authorization.k8s.io/spire-agent-cluster-role-binding
-	kubectl delete clusterrolebinding.rbac.authorization.k8s.io/spire-server-trust-role-binding
-	kubectl delete ns spire
-
-spire-entries:
-	cd scripts/scripts && ./spire-config.sh && ./spire-entry.sh nsm-operator nsm
-
-delete-spire-entries:
-	@for entry in $$(kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry show | grep 'Entry ID' | awk '{print $$4}'); do \
-	 kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry delete -entryID $$entry; \
-	done
+	@kubectl delete crd spiffeids.spiffeid.spiffe.io
+	@kubectl delete validatingwebhookconfiguration.admissionregistration.k8s.io/k8s-workload-registrar
+	@kubectl delete clusterrole.rbac.authorization.k8s.io/k8s-workload-registrar-role
+	@kubectl delete clusterrole.rbac.authorization.k8s.io/spire-agent-cluster-role
+	@kubectl delete clusterrole.rbac.authorization.k8s.io/spire-server-trust-role
+	@kubectl delete clusterrolebinding.rbac.authorization.k8s.io/k8s-workload-registrar-role-binding
+	@kubectl delete clusterrolebinding.rbac.authorization.k8s.io/spire-agent-cluster-role-binding
+	@kubectl delete clusterrolebinding.rbac.authorization.k8s.io/spire-server-trust-role-binding
+	@kubectl delete ns spire
 
 ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-deploy-nsm-operator: spire-entries nsm-namespace manifests kustomize
+deploy-nsm-operator: nsm-namespace manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
@@ -156,7 +150,7 @@ delete-nsm-operator:
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
 ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
-undeploy-nsm-operator: delete-spire-entries delete-nsm-operator delete-nsm-namespace
+undeploy-nsm-operator: delete-nsm-operator delete-nsm-namespace
 
 ## Undeploy NSM Operator and SPIRE.
 undeploy: undeploy-nsm-operator undeploy-spire
