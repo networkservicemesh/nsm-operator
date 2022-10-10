@@ -35,21 +35,35 @@ spec:
           spec:
             description: NSMSpec defines the desired state of NSM
             properties:
+              admwhImage:
+                type: string
+              exclPrefImage:
+                type: string
               forwarders:
                 items:
                   properties:
-                    Image:
+                    image:
                       description: Forwarder image string (must be a complete image
                         path with tag)
                       type: string
-                    Name:
-                      description: Forwarder descriptive name
+                    name:
+                      description: Forwarder descriptive name (if empty then "forwarder-<type>"
+                        is used)
+                      type: string
+                    type:
+                      description: Forwarder type
+                      enum:
+                      - vpp
+                      - ovs
+                      - sriov
                       type: string
                   required:
-                  - Image
-                  - Name
+                  - image
+                  - type
                   type: object
                 type: array
+              nsmLogLevel:
+                type: string
               nsmPullPolicy:
                 description: PullPolicy describes a policy for if/when to pull a container
                   image

@@ -8,6 +8,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -19,13 +20,15 @@ type ForwarderReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
+	FType  string
 }
 
-func NewForwarderReconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme) *ForwarderReconciler {
+func NewForwarderReconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme, ftype string) *ForwarderReconciler {
 	return &ForwarderReconciler{
 		Client: client,
 		Log:    log,
 		Scheme: scheme,
+		FType:  ftype,
 	}
 }
 
@@ -34,27 +37,33 @@ func (r *ForwarderReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NS
 	for _, fp := range nsm.Spec.Forwarders {
 
 		ds := &appsv1.DaemonSet{}
-		err := r.Client.Get(ctx, types.NamespacedName{Name: fp.Name, Namespace: nsm.ObjectMeta.Namespace}, ds)
+		Name := fp.Name
+		if Name == "" {
+			Name = "forwarder-" + fp.Type
+		}
+		err := r.Client.Get(ctx, types.NamespacedName{Name: Name, Namespace: nsm.ObjectMeta.Namespace}, ds)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 
-				objectMeta := newObjectMeta(fp.Name, "nsm", map[string]string{"app": "nsm"})
-				ds = r.daemonSetForForwarder(nsm, objectMeta)
+				objectMeta := newObjectMeta(Name, "nsm", map[string]string{"app": "nsm"})
+				ds = r.daemonSetForForwarder(nsm, objectMeta, r.FType)
 
 				err = r.Client.Create(context.TODO(), ds)
 				if err != nil {
-					r.Log.Error(err, "failed to create deployment for nsm-registry")
+					r.Log.Error(err, "failed to create deployment for "+Name)
 					return err
 				}
+				r.Log.Info("nsm " + Name + " daemonset created")
 				return nil
 			}
 			return err
 		}
+		r.Log.Info("nsm " + Name + " daemonset already exists, skipping creation")
 	}
 	return nil
 }
 
-func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, objectMeta metav1.ObjectMeta) *appsv1.DaemonSet {
+func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, objectMeta metav1.ObjectMeta, FType string) *appsv1.DaemonSet {
 
 	volType := corev1.HostPathDirectoryOrCreate
 	// mountPropagationMode := corev1.MountPropagationBidirectional
@@ -76,34 +85,20 @@ func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, object
 				},
 				Spec: corev1.PodSpec{
 					ServiceAccountName: serviceAccountName,
-					// HostPID:            true,
-					HostNetwork: true,
-
+					HostPID:            true,
+					HostNetwork:        true,
+					DNSPolicy:          corev1.DNSClusterFirstWithHostNet,
 					Containers: []corev1.Container{
 
 						// forwarding plane container
 						{
 							Name:            objectMeta.Name,
-							Image:           getForwarderImage(nsm, objectMeta.Name),
+							Image:           getForwarderImage(nsm, FType),
 							ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,
 							},
-							Env: []corev1.EnvVar{
-								{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
-								{Name: "NSM_TUNNEL_IP", ValueFrom: &corev1.EnvVarSource{
-									FieldRef: &corev1.ObjectFieldSelector{
-										FieldPath: "status.podIP",
-									}}},
-								{Name: "NSM_CONNECT_TO", Value: "unix:///var/lib/networkservicemesh/nsm.io.sock"},
-								{Name: "NSM_NAME", ValueFrom: &corev1.EnvVarSource{
-									FieldRef: &corev1.ObjectFieldSelector{
-										FieldPath: "metadata.name",
-									}}},
-
-								// {Name: "JAEGER_AGENT_PORT", Value: nsm.Spec.JaegerTracing}
-							},
-
+							Env: getEnvVars(nsm, FType),
 							VolumeMounts: []corev1.VolumeMount{
 								{Name: "nsm-socket",
 									MountPath: "/var/lib/networkservicemesh/",
@@ -114,6 +109,7 @@ func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, object
 									ReadOnly:  true,
 								},
 							},
+							Resources: getForwarderResourceReqs(nsm, FType),
 						}},
 					Volumes: []corev1.Volume{
 						{
@@ -141,12 +137,67 @@ func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, object
 	return daemonset
 }
 
-func getForwarderImage(nsm *nsmv1alpha1.NSM, name string) string {
+func getForwarderImage(nsm *nsmv1alpha1.NSM, ftype string) string {
 
 	for _, pf := range nsm.Spec.Forwarders {
-		if pf.Name == name {
+		if pf.Type == ftype {
 			return pf.Image
 		}
 	}
 	return ""
+}
+
+func getForwarderResourceReqs(nsm *nsmv1alpha1.NSM, FType string) corev1.ResourceRequirements {
+
+	if FType == "vpp" {
+		return corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("525m"),
+				corev1.ResourceMemory: resource.MustParse("500Mi"),
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU: resource.MustParse("150m"),
+			},
+		}
+	} else if FType == "ovs" {
+		return corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceMemory: resource.MustParse("1Gi"),
+			},
+		}
+	} else if FType == "sriov" {
+		return corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("400m"),
+				corev1.ResourceMemory: resource.MustParse("40Mi"),
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU: resource.MustParse("200m"),
+			},
+		}
+	}
+	return corev1.ResourceRequirements{}
+}
+
+func getEnvVars(nsm *nsmv1alpha1.NSM, FType string) []corev1.EnvVar {
+	EnvVars := []corev1.EnvVar{
+		{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
+		{Name: "NSM_TUNNEL_IP", ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "status.podIP",
+			}}},
+		{Name: "NSM_CONNECT_TO", Value: "unix:///var/lib/networkservicemesh/nsm.io.sock"},
+		{Name: "NSM_NAME", ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.name",
+			}}},
+		//{Name: "NSM_SRIOV_CONFIG_FILE", Value: getSRIOVConfigFile(nsm)},
+		{Name: "NSM_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
+	}
+	if FType == "ovs" {
+		EnvVars = append(EnvVars, corev1.EnvVar{Name: "NSM_SRIOV_CONFIG_FILE", Value: "/var/lib/networkservicemesh/smartnic.config"})
+	} else if FType == "sriov" {
+		EnvVars = append(EnvVars, corev1.EnvVar{Name: "NSM_SRIOV_CONFIG_FILE", Value: "/var/lib/networkservicemesh/sriov.config"})
+	}
+	return EnvVars
 }

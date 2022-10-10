@@ -8,6 +8,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -41,6 +42,7 @@ func (r *RegistryReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NSM
 				r.Log.Error(err, "failed to create deployment for nsm-registry")
 				return err
 			}
+			r.Log.Info("nsm registry deployment created")
 			return nil
 		}
 		return err
@@ -86,7 +88,17 @@ func (r *RegistryReconciler) DeploymentForRegistry(nsm *nsmv1alpha1.NSM) *appsv1
 						VolumeMounts: []corev1.VolumeMount{
 							{Name: "spire-agent-socket",
 								MountPath: "/run/spire/sockets",
-							}}}},
+							}},
+						Resources: corev1.ResourceRequirements{
+							Limits: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("200m"),
+								corev1.ResourceMemory: resource.MustParse("40Mi"),
+							},
+							Requests: corev1.ResourceList{
+								corev1.ResourceCPU: resource.MustParse("100m"),
+							},
+						},
+					}},
 					Volumes: []corev1.Volume{{
 						Name: "spire-agent-socket",
 						VolumeSource: corev1.VolumeSource{
@@ -113,14 +125,14 @@ func getEnvVar(nsm *nsmv1alpha1.NSM) *[]corev1.EnvVar {
 			{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
 			{Name: "REGISTRY_MEMORY_LISTEN_ON", Value: "tcp://:5002"},
 			{Name: "REGISTRY_MEMORY_PROXY_REGISTRY_URL", Value: "nsmgr-proxy:5004"},
-			{Name: "REGISTRY_MEMORY_LOG_LEVEL", Value: "TRACE"},
+			{Name: "REGISTRY_MEMORY_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
 		}
 	case "k8s":
 		return &[]corev1.EnvVar{
 			{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
 			{Name: "REGISTRY_K8S_LISTEN_ON", Value: "tcp://:5002"},
 			{Name: "REGISTRY_K8S_PROXY_REGISTRY_URL", Value: "nsmgr-proxy:5004"},
-			{Name: "REGISTRY_K8S_LOG_LEVEL", Value: "TRACE"},
+			{Name: "REGISTRY_K8S_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
 			{Name: "REGISTRY_K8S_NAMESPACE", ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
 					FieldPath: "metadata.namespace",

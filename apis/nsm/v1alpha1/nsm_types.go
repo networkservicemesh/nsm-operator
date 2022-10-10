@@ -22,11 +22,15 @@ import (
 )
 
 type Forwarder struct {
+	// Forwarder type
+	// +kubebuilder:validation:Enum=vpp;ovs;sriov
+	Type string `json:"type"`
 	// Forwarder descriptive name
-	Name string `json:"Name"`
+	// (if empty then "forwarder-<type>" is used)
+	Name string `json:"name,omitempty"`
 	// Forwarder image string
 	// (must be a complete image path with tag)
-	Image string `json:"Image"`
+	Image string `json:"image"`
 }
 
 type Registry struct {
@@ -42,9 +46,12 @@ type NSMSpec struct {
 	// tag represents the desired nsm version
 	Version       string            `json:"version"`
 	NsmPullPolicy corev1.PullPolicy `json:"nsmPullPolicy"`
+	NsmLogLevel   string            `json:"nsmLogLevel,omitempty"`
 	Registry      Registry          `json:"registry"`
 	NsmgrImage    string            `json:"nsmgrImage,omitempty"`
+	ExclPrefImage string            `json:"exclPrefImage,omitempty"`
 	Forwarders    []Forwarder       `json:"forwarders"`
+	AdmWhImage    string            `json:"admwhImage,omitempty"`
 }
 
 // NSMPhase is the type for the operator phases

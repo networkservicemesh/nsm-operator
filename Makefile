@@ -106,6 +106,8 @@ container-build:
 container-push: ## Push docker image with the manager.
 	${BUILDER} push ${IMG}
 
+container: container-build container-push
+
 ##@ Deployment
 
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.

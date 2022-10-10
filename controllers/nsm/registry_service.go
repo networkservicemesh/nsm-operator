@@ -40,6 +40,7 @@ func (r *RegistryServiceReconciler) Reconcile(ctx context.Context, nsm *nsmv1alp
 				r.Log.Error(err, "failed to create service for nsm-registry")
 				return err
 			}
+			r.Log.Info("nsm registry service created")
 			return nil
 		}
 		return err

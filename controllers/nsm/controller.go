@@ -52,6 +52,7 @@ const (
 	registryMemoryImage string = "ghcr.io/networkservicemesh/cmd-registry-memory:latest"
 	registryK8sImage    string = "ghcr.io/networkservicemesh/ci/cmd-registry-k8s:latest"
 	nsmgrImage          string = "ghcr.io/networkservicemesh/cmd-nsmgr"
+	exclPrefImage       string = "ghcr.io/networkservicemesh/cmd-exclude-prefixes-k8s"
 )
 
 // Reconcile for NSMs
@@ -82,7 +83,7 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		}
 	}
 
-	// setting up deafult images for registry
+	// setting up default images for registry
 	if nsm.Spec.Registry.Image == "" {
 		switch nsm.Spec.Registry.Type {
 		case "memory":
@@ -96,11 +97,25 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		nsm.Spec.NsmgrImage = nsmgrImage
 	}
 
+	if nsm.Spec.ExclPrefImage == "" {
+		nsm.Spec.ExclPrefImage = exclPrefImage
+	}
+
 	reconcilers := []Reconciler{
 		NewRegistryReconciler(r.Client, Log, r.Scheme),
 		NewRegistryServiceReconciler(r.Client, Log, r.Scheme),
-		NewForwarderReconciler(r.Client, Log, r.Scheme),
 		NewNsmgrReconciler(r.Client, Log, r.Scheme),
+	}
+	// Add forwarder reconcilers
+	for _, pf := range nsm.Spec.Forwarders {
+		reconcilers = append(reconcilers,
+			NewForwarderReconciler(r.Client, Log, r.Scheme, pf.Type))
+	}
+
+	if nsm.Spec.AdmWhImage != "" {
+		reconcilers = append(reconcilers,
+			NewAdmissionWHReconciler(r.Client, Log, r.Scheme),
+			NewAdmissionWHServiceReconciler(r.Client, Log, r.Scheme))
 	}
 
 	// Call all reconcilers
@@ -131,4 +146,12 @@ func (r *NSMReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.Deployment{}).
 		Owns(&appsv1.DaemonSet{}).
 		Complete(r)
+}
+
+// Get value for NSM_LOG_LEVEL environment variable (defaul: "INFO")
+func getNsmLogLevel(nsm *nsmv1alpha1.NSM) string {
+	if nsm.Spec.NsmLogLevel != "" {
+		return nsm.Spec.NsmLogLevel
+	}
+	return "INFO"
 }
