@@ -65,12 +65,8 @@ func (r *ForwarderReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NS
 
 func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, objectMeta metav1.ObjectMeta, FType string) *appsv1.DaemonSet {
 
-	volType := corev1.HostPathDirectoryOrCreate
-	// mountPropagationMode := corev1.MountPropagationBidirectional
 	privmode := true
-
 	forwarderLabel := map[string]string{"app": "forwarder", "spiffe.io/spiffe-id": "true"}
-	volTypeSpire := corev1.HostPathDirectory
 
 	daemonset := &appsv1.DaemonSet{
 
@@ -98,35 +94,14 @@ func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, object
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,
 							},
-							Env: getEnvVars(nsm, FType),
-							VolumeMounts: []corev1.VolumeMount{
-								{Name: "nsm-socket",
-									MountPath: "/var/lib/networkservicemesh/",
-									// MountPropagation: &mountPropagationMode,
-								},
-								{Name: "spire-agent-socket",
-									MountPath: "/run/spire/sockets",
-									ReadOnly:  true,
-								},
-							},
-							Resources: getForwarderResourceReqs(nsm, FType),
+							Env:            getEnvVars(nsm, FType),
+							ReadinessProbe: getReadinessProbe(FType),
+							LivenessProbe:  getLivenessProbe(FType),
+							StartupProbe:   getStartupProbe(FType),
+							VolumeMounts:   getVolumeMounts(FType),
+							Resources:      getForwarderResourceReqs(FType),
 						}},
-					Volumes: []corev1.Volume{
-						{
-							Name: "nsm-socket",
-							VolumeSource: corev1.VolumeSource{
-								HostPath: &corev1.HostPathVolumeSource{
-									Path: "/var/lib/networkservicemesh",
-									Type: &volType,
-								}}},
-						{
-							Name: "spire-agent-socket",
-							VolumeSource: corev1.VolumeSource{
-								HostPath: &corev1.HostPathVolumeSource{
-									Path: "/run/spire/sockets",
-									Type: &volTypeSpire,
-								}}},
-					},
+					Volumes: getVolumes(FType),
 				},
 			},
 		},
@@ -147,7 +122,7 @@ func getForwarderImage(nsm *nsmv1alpha1.NSM, ftype string) string {
 	return ""
 }
 
-func getForwarderResourceReqs(nsm *nsmv1alpha1.NSM, FType string) corev1.ResourceRequirements {
+func getForwarderResourceReqs(FType string) corev1.ResourceRequirements {
 
 	if FType == "vpp" {
 		return corev1.ResourceRequirements{
@@ -191,13 +166,181 @@ func getEnvVars(nsm *nsmv1alpha1.NSM, FType string) []corev1.EnvVar {
 			FieldRef: &corev1.ObjectFieldSelector{
 				FieldPath: "metadata.name",
 			}}},
-		//{Name: "NSM_SRIOV_CONFIG_FILE", Value: getSRIOVConfigFile(nsm)},
 		{Name: "NSM_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
 	}
 	if FType == "ovs" {
 		EnvVars = append(EnvVars, corev1.EnvVar{Name: "NSM_SRIOV_CONFIG_FILE", Value: "/var/lib/networkservicemesh/smartnic.config"})
 	} else if FType == "sriov" {
 		EnvVars = append(EnvVars, corev1.EnvVar{Name: "NSM_SRIOV_CONFIG_FILE", Value: "/var/lib/networkservicemesh/sriov.config"})
+	} else if FType == "vpp" {
+		EnvVars = append(EnvVars, corev1.EnvVar{Name: "NSM_LISTEN_ON", Value: "unix:///listen.on.sock"})
+		// For VPP there is no default, but later if we implement its configuration it should be added.
+		//	EnvVars = append(EnvVars, corev1.EnvVar{Name: "NSM_SRIOV_CONFIG_FILE", Value: "/var/lib/networkservicemesh/sriov.config"})
 	}
 	return EnvVars
+}
+
+func getVolumeMounts(FType string) []corev1.VolumeMount {
+	VolMounts := []corev1.VolumeMount{
+		{Name: "nsm-socket",
+			MountPath: "/var/lib/networkservicemesh/",
+		},
+		{Name: "spire-agent-socket",
+			MountPath: "/run/spire/sockets",
+			ReadOnly:  true,
+		},
+		{Name: "kubelet-socket",
+			MountPath: "/var/lib/kubelet",
+		},
+		{Name: "cgroup",
+			MountPath: "/host/sys/fs/cgroup",
+		},
+		{Name: "vfio",
+			MountPath: "/host/dev/vfio",
+		},
+	}
+	if FType == "vpp" {
+		VolMounts = append(VolMounts, corev1.VolumeMount{Name: "vpp", MountPath: "/var/run/vpp/external"})
+	}
+	return VolMounts
+}
+
+func getVolumes(FType string) []corev1.Volume {
+
+	volTypeDirOrCreate := corev1.HostPathDirectoryOrCreate
+	volTypeDir := corev1.HostPathDirectory
+
+	Volumes := []corev1.Volume{
+		{
+			Name: "nsm-socket",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/var/lib/networkservicemesh",
+					Type: &volTypeDirOrCreate,
+				}}},
+		{
+			Name: "spire-agent-socket",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/run/spire/sockets",
+					Type: &volTypeDir,
+				}}},
+		{
+			Name: "kubelet-socket",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/var/lib/kubelet",
+					Type: &volTypeDir,
+				}}},
+		{
+			Name: "cgroup",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/sys/fs/cgroup",
+					Type: &volTypeDir,
+				}}},
+		{
+			Name: "vfio",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/dev/vfio",
+					Type: &volTypeDirOrCreate,
+				}}}}
+
+	if FType == "vpp" {
+		Volumes = append(Volumes, corev1.Volume{Name: "vpp",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/var/run/vpp",
+					Type: &volTypeDirOrCreate}}})
+	}
+	return Volumes
+}
+
+// Probes are set only for VPP forwarder.
+// Put a simple "echo" into OVS and SR-IOV forwarder's probes.
+func getReadinessProbe(FType string) *corev1.Probe {
+
+	if FType == "vpp" {
+		return &corev1.Probe{
+			ProbeHandler: corev1.ProbeHandler{
+				Exec: &corev1.ExecAction{
+					Command: []string{
+						"/bin/grpc-health-probe",
+						"-spiffe",
+						"-addr=unix:///listen.on.sock",
+					},
+				},
+			},
+			FailureThreshold:    120,
+			InitialDelaySeconds: 1,
+			PeriodSeconds:       1,
+			TimeoutSeconds:      2,
+		}
+	}
+	return &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			Exec: &corev1.ExecAction{
+				Command: []string{
+					"echo",
+				},
+			},
+		},
+	}
+}
+
+func getLivenessProbe(FType string) *corev1.Probe {
+	if FType == "vpp" {
+		return &corev1.Probe{
+			ProbeHandler: corev1.ProbeHandler{
+				Exec: &corev1.ExecAction{
+					Command: []string{
+						"/bin/grpc-health-probe",
+						"-spiffe",
+						"-addr=unix:///listen.on.sock",
+					},
+				},
+			},
+			FailureThreshold:    25,
+			InitialDelaySeconds: 10,
+			PeriodSeconds:       5,
+			TimeoutSeconds:      2,
+		}
+	}
+	return &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			Exec: &corev1.ExecAction{
+				Command: []string{
+					"echo",
+				},
+			},
+		},
+	}
+}
+
+func getStartupProbe(FType string) *corev1.Probe {
+	if FType == "vpp" {
+		return &corev1.Probe{
+			ProbeHandler: corev1.ProbeHandler{
+				Exec: &corev1.ExecAction{
+					Command: []string{
+						"/bin/grpc-health-probe",
+						"-spiffe",
+						"-addr=unix:///listen.on.sock",
+					},
+				},
+			},
+			FailureThreshold: 25,
+			PeriodSeconds:    5,
+		}
+	}
+	return &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			Exec: &corev1.ExecAction{
+				Command: []string{
+					"echo",
+				},
+			},
+		},
+	}
 }
