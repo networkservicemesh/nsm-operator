@@ -78,7 +78,7 @@ func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.Daemon
 						// nsmgr container
 						{
 							Name:            "nsmgr",
-							Image:           nsm.Spec.NsmgrImage + ":" + nsm.Spec.Version,
+							Image:           nsm.Spec.NsmgrImage,
 							ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,
@@ -174,7 +174,7 @@ func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.Daemon
 						// exclude-prefixes container
 						{
 							Name:            "exclude-prefixes",
-							Image:           nsm.Spec.ExclPrefImage + ":" + nsm.Spec.Version,
+							Image:           nsm.Spec.ExclPrefImage,
 							ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,

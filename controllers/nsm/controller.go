@@ -49,10 +49,11 @@ type NSMReconciler struct {
 
 const (
 	serviceAccountName  string = "nsm-operator"
-	registryMemoryImage string = "ghcr.io/networkservicemesh/cmd-registry-memory:latest"
-	registryK8sImage    string = "ghcr.io/networkservicemesh/ci/cmd-registry-k8s:latest"
+	registryMemoryImage string = "ghcr.io/networkservicemesh/cmd-registry-memory"
+	registryK8sImage    string = "ghcr.io/networkservicemesh/cmd-registry-k8s"
 	nsmgrImage          string = "ghcr.io/networkservicemesh/cmd-nsmgr"
 	exclPrefImage       string = "ghcr.io/networkservicemesh/cmd-exclude-prefixes-k8s"
+	forwarderImage      string = "ghcr.io/networkservicemesh/cmd-forwarder-"
 )
 
 // Reconcile for NSMs
@@ -87,18 +88,18 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	if nsm.Spec.Registry.Image == "" {
 		switch nsm.Spec.Registry.Type {
 		case "memory":
-			nsm.Spec.Registry.Image = registryMemoryImage
+			nsm.Spec.Registry.Image = registryMemoryImage + ":" + nsm.Spec.Version
 		case "k8s":
-			nsm.Spec.Registry.Image = registryK8sImage
+			nsm.Spec.Registry.Image = registryK8sImage + ":" + nsm.Spec.Version
 		}
 	}
 
 	if nsm.Spec.NsmgrImage == "" {
-		nsm.Spec.NsmgrImage = nsmgrImage
+		nsm.Spec.NsmgrImage = nsmgrImage + ":" + nsm.Spec.Version
 	}
 
 	if nsm.Spec.ExclPrefImage == "" {
-		nsm.Spec.ExclPrefImage = exclPrefImage
+		nsm.Spec.ExclPrefImage = exclPrefImage + ":" + nsm.Spec.Version
 	}
 
 	reconcilers := []Reconciler{
@@ -106,16 +107,18 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		NewRegistryServiceReconciler(r.Client, Log, r.Scheme),
 		NewNsmgrReconciler(r.Client, Log, r.Scheme),
 	}
-	// Add forwarder reconcilers
-	for _, pf := range nsm.Spec.Forwarders {
-		reconcilers = append(reconcilers,
-			NewForwarderReconciler(r.Client, Log, r.Scheme, pf.Type))
-	}
 
+	// Add admission-webhook-k8s reconciler on demand
 	if nsm.Spec.AdmWhImage != "" {
 		reconcilers = append(reconcilers,
 			NewAdmissionWHReconciler(r.Client, Log, r.Scheme),
 			NewAdmissionWHServiceReconciler(r.Client, Log, r.Scheme))
+	}
+
+	// Add forwarder reconcilers
+	for _, pf := range nsm.Spec.Forwarders {
+		reconcilers = append(reconcilers,
+			NewForwarderReconciler(r.Client, Log, r.Scheme, pf.Type))
 	}
 
 	// Call all reconcilers

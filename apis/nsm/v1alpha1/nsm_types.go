@@ -30,7 +30,7 @@ type Forwarder struct {
 	Name string `json:"name,omitempty"`
 	// Forwarder image string
 	// (must be a complete image path with tag)
-	Image string `json:"image"`
+	Image string `json:"image,omitempty"`
 }
 
 type Registry struct {
@@ -43,15 +43,22 @@ type Registry struct {
 
 // NSMSpec defines the desired state of NSM
 type NSMSpec struct {
-	// tag represents the desired nsm version
+	// tag represents the desired Network Service Mesh version
 	Version       string            `json:"version"`
 	NsmPullPolicy corev1.PullPolicy `json:"nsmPullPolicy"`
-	NsmLogLevel   string            `json:"nsmLogLevel,omitempty"`
-	Registry      Registry          `json:"registry"`
-	NsmgrImage    string            `json:"nsmgrImage,omitempty"`
-	ExclPrefImage string            `json:"exclPrefImage,omitempty"`
-	Forwarders    []Forwarder       `json:"forwarders"`
-	AdmWhImage    string            `json:"admwhImage,omitempty"`
+	// Log level of the NSM components
+	NsmLogLevel string `json:"nsmLogLevel,omitempty"`
+	// admission-webhook-k8s image string
+	// (must be a complete image path with tag)
+	AdmWhImage string   `json:"admwhImage,omitempty"`
+	Registry   Registry `json:"registry"`
+	// NSMGR image string
+	// (must be a complete image path with tag)
+	NsmgrImage string `json:"nsmgrImage,omitempty"`
+	// exclude-prefixes-k8s image string
+	// (must be a complete image path with tag)
+	ExclPrefImage string      `json:"exclPrefImage,omitempty"`
+	Forwarders    []Forwarder `json:"forwarders"`
 }
 
 // NSMPhase is the type for the operator phases

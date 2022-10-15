@@ -112,14 +112,16 @@ func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, object
 	return daemonset
 }
 
-func getForwarderImage(nsm *nsmv1alpha1.NSM, ftype string) string {
+func getForwarderImage(nsm *nsmv1alpha1.NSM, FType string) string {
 
 	for _, pf := range nsm.Spec.Forwarders {
-		if pf.Type == ftype {
-			return pf.Image
+		if pf.Type == FType {
+			if pf.Image != "" {
+				return pf.Image
+			}
 		}
 	}
-	return ""
+	return forwarderImage + FType + ":" + nsm.Spec.Version
 }
 
 func getForwarderResourceReqs(FType string) corev1.ResourceRequirements {
