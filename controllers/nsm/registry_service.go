@@ -65,6 +65,7 @@ func (r *RegistryServiceReconciler) serviceForNsmRegistry(nsm *nsmv1alpha1.NSM) 
 					TargetPort: intstr.FromInt(5002)},
 			},
 			Selector: registryLabel,
+			Type:     corev1.ServiceTypeLoadBalancer,
 		},
 	}
 	// Set NSM instance as the owner and controller
