@@ -119,34 +119,47 @@ nsm-namespace:
 delete-nsm-namespace:
 	kubectl delete ns nsm
 
-spire:
-	cd scripts/spire && helm install spire . -n nsm
+deploy-spire:
+	cd scripts/spire && kubectl apply -f spire.yaml
 	@echo "Waiting for spire to get ready..."
 	@kubectl wait -n spire --timeout=2m --for=condition=ready pod -l app=spire-agent
 	@kubectl wait -n spire --timeout=1m --for=condition=ready pod -l app=spire-server
+
+undeploy-spire:
+	kubectl delete crd spiffeids.spiffeid.spiffe.io
+	kubectl delete validatingwebhookconfiguration.admissionregistration.k8s.io/k8s-workload-registrar
+	kubectl delete clusterrole.rbac.authorization.k8s.io/k8s-workload-registrar-role
+	kubectl delete clusterrole.rbac.authorization.k8s.io/spire-agent-cluster-role
+	kubectl delete clusterrole.rbac.authorization.k8s.io/spire-server-trust-role
+	kubectl delete clusterrolebinding.rbac.authorization.k8s.io/k8s-workload-registrar-role-binding
+	kubectl delete clusterrolebinding.rbac.authorization.k8s.io/spire-agent-cluster-role-binding
+	kubectl delete clusterrolebinding.rbac.authorization.k8s.io/spire-server-trust-role-binding
+	kubectl delete ns spire
+
+spire-entries:
 	cd scripts/scripts && ./spire-config.sh && ./spire-entry.sh nsm-operator nsm
 
-delete-spire:
+delete-spire-entries:
 	@for entry in $$(kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry show | grep 'Entry ID' | awk '{print $$4}'); do \
 	 kubectl -n spire exec spire-server-0 -c spire-server -- /opt/spire/bin/spire-server entry delete -entryID $$entry; \
 	done
-	kubectl delete crd spiffeids.spiffeid.spiffe.io
-	helm delete spire -n nsm
-
-# RBAC for registry-k8s
-rbac-for-registry-k8s:
-	kubectl apply -f config/registry-k8s/
 
 ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-deploy: nsm-namespace spire manifests kustomize 
+deploy-nsm-operator: spire-entries nsm-namespace manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
+
+## Deploy NSM Operator and SPIRE.
+deploy: deploy-spire deploy-nsm-operator
 
 delete-nsm-operator:
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
 ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
-undeploy: delete-nsm-operator delete-spire delete-nsm-namespace
+undeploy-nsm-operator: delete-spire-entries delete-nsm-operator delete-nsm-namespace
+
+## Undeploy NSM Operator and SPIRE.
+undeploy: undeploy-nsm-operator undeploy-spire
 
 ##@ Build Dependencies
 
@@ -160,15 +173,13 @@ KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
-## Tool Versions
-KUSTOMIZE_VERSION ?= v3.8.7
+## Controller Tool Version
 CONTROLLER_TOOLS_VERSION ?= v0.9.0
 
-KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
-	curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN)
+	GOBIN=$(LOCALBIN) GO111MODULE=on go install sigs.k8s.io/kustomize/kustomize/v4@latest
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.

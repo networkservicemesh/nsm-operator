@@ -13,12 +13,13 @@ spec:
     metadata:
       labels:
         app: nsc-kernel
+        "spiffe.io/spiffe-id": "true"
     spec:
-      serviceAccountName: nsm-operator    
+      serviceAccountName: nsm-operator
       containers:
         - name: nsc
           securityContext:
-            privileged: true        
+            privileged: true
           image: {{ .Values.registry }}/{{ .Values.organization }}/{{ .Values.nscImage }}:{{ .Values.tag }}
           imagePullPolicy: {{ .Values.pullPolicy }}
           env:
@@ -38,9 +39,12 @@ spec:
               mountPath: /var/lib/networkservicemesh
               readOnly: true
           resources:
-            limits:
-              memory: 40Mi
+            requests:
               cpu: 100m
+              memory: 40Mi
+            limits:
+              memory: 80Mi
+              cpu: 200m
       volumes:
         - name: spire-agent-socket
           hostPath:
