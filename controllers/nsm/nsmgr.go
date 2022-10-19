@@ -57,7 +57,7 @@ func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.Daemon
 	volTypeSpire := corev1.HostPathDirectory
 	privmode := true
 
-	nsmgrLabel := map[string]string{"app": "nsmgr"}
+	nsmgrLabel := map[string]string{"app": "nsmgr", "spiffe.io/spiffe-id": "true"}
 
 	daemonset := &appsv1.DaemonSet{
 		ObjectMeta: objectMeta,

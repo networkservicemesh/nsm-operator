@@ -4,7 +4,7 @@ metadata:
   labels:
     control-plane: controller-manager
   name: controller-manager-metrics-service
-  namespace: nsm-system
+  namespace: nsm
 spec:
   ports:
   - name: https

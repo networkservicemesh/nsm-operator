@@ -9,4 +9,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: nsm-operator
-  namespace: nsm-system
+  namespace: nsm

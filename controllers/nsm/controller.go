@@ -116,7 +116,7 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	if nsm.Status.Phase != nsmv1alpha1.NSMPhaseRunning {
 		nsm.Status.Phase = nsmv1alpha1.NSMPhaseRunning
 		if updateErr := r.Client.Status().Update(context.TODO(), nsm); updateErr != nil {
-			Log.Info("Failed to update status", "Error", err.Error())
+			Log.Info("Failed to update status", "Error", updateErr.Error())
 		}
 	}
 
