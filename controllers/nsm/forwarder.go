@@ -18,17 +18,17 @@ import (
 
 type ForwarderReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
-	FType  string
+	Log           logr.Logger
+	Scheme        *runtime.Scheme
+	ForwarderType nsmv1alpha1.ForwarderType
 }
 
-func NewForwarderReconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme, ftype string) *ForwarderReconciler {
+func NewForwarderReconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme, forwardertype nsmv1alpha1.ForwarderType) *ForwarderReconciler {
 	return &ForwarderReconciler{
-		Client: client,
-		Log:    log,
-		Scheme: scheme,
-		FType:  ftype,
+		Client:        client,
+		Log:           log,
+		Scheme:        scheme,
+		ForwarderType: forwardertype,
 	}
 }
 
@@ -39,14 +39,14 @@ func (r *ForwarderReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NS
 		ds := &appsv1.DaemonSet{}
 		Name := fp.Name
 		if Name == "" {
-			Name = "forwarder-" + fp.Type
+			Name = "forwarder-" + string(fp.Type)
 		}
 		err := r.Client.Get(ctx, types.NamespacedName{Name: Name, Namespace: nsm.ObjectMeta.Namespace}, ds)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 
 				objectMeta := newObjectMeta(Name, "nsm", map[string]string{"app": "nsm"})
-				ds = r.daemonSetForForwarder(nsm, objectMeta, r.FType)
+				ds = r.daemonSetForForwarder(nsm, objectMeta, r.ForwarderType)
 
 				err = r.Client.Create(context.TODO(), ds)
 				if err != nil {
@@ -63,7 +63,7 @@ func (r *ForwarderReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NS
 	return nil
 }
 
-func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, objectMeta metav1.ObjectMeta, FType string) *appsv1.DaemonSet {
+func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, objectMeta metav1.ObjectMeta, ForwarderType nsmv1alpha1.ForwarderType) *appsv1.DaemonSet {
 
 	privmode := true
 	forwarderLabel := map[string]string{"app": "forwarder", "spiffe.io/spiffe-id": "true"}
@@ -89,19 +89,19 @@ func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, object
 						// forwarding plane container
 						{
 							Name:            objectMeta.Name,
-							Image:           getForwarderImage(nsm, FType),
+							Image:           getForwarderImage(nsm, ForwarderType),
 							ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,
 							},
-							Env:            getEnvVars(nsm, FType),
-							ReadinessProbe: getReadinessProbe(FType),
-							LivenessProbe:  getLivenessProbe(FType),
-							StartupProbe:   getStartupProbe(FType),
-							VolumeMounts:   getVolumeMounts(FType),
-							Resources:      getForwarderResourceReqs(FType),
+							Env:            getEnvVars(nsm, ForwarderType),
+							ReadinessProbe: getReadinessProbe(ForwarderType),
+							LivenessProbe:  getLivenessProbe(ForwarderType),
+							StartupProbe:   getStartupProbe(ForwarderType),
+							VolumeMounts:   getVolumeMounts(ForwarderType),
+							Resources:      getForwarderResourceReqs(ForwarderType),
 						}},
-					Volumes: getVolumes(FType),
+					Volumes: getVolumes(ForwarderType),
 				},
 			},
 		},
@@ -112,21 +112,21 @@ func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, object
 	return daemonset
 }
 
-func getForwarderImage(nsm *nsmv1alpha1.NSM, FType string) string {
+func getForwarderImage(nsm *nsmv1alpha1.NSM, ForwarderType nsmv1alpha1.ForwarderType) string {
 
 	for _, pf := range nsm.Spec.Forwarders {
-		if pf.Type == FType {
+		if pf.Type == ForwarderType {
 			if pf.Image != "" {
 				return pf.Image
 			}
 		}
 	}
-	return forwarderImage + FType + ":" + nsm.Spec.Version
+	return forwarderImage + string(ForwarderType) + ":" + nsm.Spec.Version
 }
 
-func getForwarderResourceReqs(FType string) corev1.ResourceRequirements {
+func getForwarderResourceReqs(ForwarderType nsmv1alpha1.ForwarderType) corev1.ResourceRequirements {
 
-	if FType == "vpp" {
+	if ForwarderType == nsmv1alpha1.ForwarderVpp {
 		return corev1.ResourceRequirements{
 			Limits: corev1.ResourceList{
 				corev1.ResourceCPU:    resource.MustParse("525m"),
@@ -136,13 +136,13 @@ func getForwarderResourceReqs(FType string) corev1.ResourceRequirements {
 				corev1.ResourceCPU: resource.MustParse("150m"),
 			},
 		}
-	} else if FType == "ovs" {
+	} else if ForwarderType == nsmv1alpha1.ForwarderOvs {
 		return corev1.ResourceRequirements{
 			Limits: corev1.ResourceList{
 				corev1.ResourceMemory: resource.MustParse("1Gi"),
 			},
 		}
-	} else if FType == "sriov" {
+	} else if ForwarderType == nsmv1alpha1.ForwarderSriov {
 		return corev1.ResourceRequirements{
 			Limits: corev1.ResourceList{
 				corev1.ResourceCPU:    resource.MustParse("400m"),
@@ -156,7 +156,7 @@ func getForwarderResourceReqs(FType string) corev1.ResourceRequirements {
 	return corev1.ResourceRequirements{}
 }
 
-func getEnvVars(nsm *nsmv1alpha1.NSM, FType string) []corev1.EnvVar {
+func getEnvVars(nsm *nsmv1alpha1.NSM, ForwarderType nsmv1alpha1.ForwarderType) []corev1.EnvVar {
 	EnvVars := []corev1.EnvVar{
 		{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
 		{Name: "NSM_TUNNEL_IP", ValueFrom: &corev1.EnvVarSource{
@@ -170,11 +170,11 @@ func getEnvVars(nsm *nsmv1alpha1.NSM, FType string) []corev1.EnvVar {
 			}}},
 		{Name: "NSM_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
 	}
-	if FType == "ovs" {
+	if ForwarderType == nsmv1alpha1.ForwarderOvs {
 		EnvVars = append(EnvVars, corev1.EnvVar{Name: "NSM_SRIOV_CONFIG_FILE", Value: "/var/lib/networkservicemesh/smartnic.config"})
-	} else if FType == "sriov" {
+	} else if ForwarderType == nsmv1alpha1.ForwarderSriov {
 		EnvVars = append(EnvVars, corev1.EnvVar{Name: "NSM_SRIOV_CONFIG_FILE", Value: "/var/lib/networkservicemesh/sriov.config"})
-	} else if FType == "vpp" {
+	} else if ForwarderType == nsmv1alpha1.ForwarderVpp {
 		EnvVars = append(EnvVars, corev1.EnvVar{Name: "NSM_LISTEN_ON", Value: "unix:///listen.on.sock"})
 		// For VPP there is no default, but later if we implement its configuration it should be added.
 		//	EnvVars = append(EnvVars, corev1.EnvVar{Name: "NSM_SRIOV_CONFIG_FILE", Value: "/var/lib/networkservicemesh/sriov.config"})
@@ -182,7 +182,7 @@ func getEnvVars(nsm *nsmv1alpha1.NSM, FType string) []corev1.EnvVar {
 	return EnvVars
 }
 
-func getVolumeMounts(FType string) []corev1.VolumeMount {
+func getVolumeMounts(ForwarderType nsmv1alpha1.ForwarderType) []corev1.VolumeMount {
 	VolMounts := []corev1.VolumeMount{
 		{Name: "nsm-socket",
 			MountPath: "/var/lib/networkservicemesh/",
@@ -201,13 +201,13 @@ func getVolumeMounts(FType string) []corev1.VolumeMount {
 			MountPath: "/host/dev/vfio",
 		},
 	}
-	if FType == "vpp" {
+	if ForwarderType == nsmv1alpha1.ForwarderVpp {
 		VolMounts = append(VolMounts, corev1.VolumeMount{Name: "vpp", MountPath: "/var/run/vpp/external"})
 	}
 	return VolMounts
 }
 
-func getVolumes(FType string) []corev1.Volume {
+func getVolumes(ForwarderType nsmv1alpha1.ForwarderType) []corev1.Volume {
 
 	volTypeDirOrCreate := corev1.HostPathDirectoryOrCreate
 	volTypeDir := corev1.HostPathDirectory
@@ -249,7 +249,7 @@ func getVolumes(FType string) []corev1.Volume {
 					Type: &volTypeDirOrCreate,
 				}}}}
 
-	if FType == "vpp" {
+	if ForwarderType == nsmv1alpha1.ForwarderVpp {
 		Volumes = append(Volumes, corev1.Volume{Name: "vpp",
 			VolumeSource: corev1.VolumeSource{
 				HostPath: &corev1.HostPathVolumeSource{
@@ -261,9 +261,9 @@ func getVolumes(FType string) []corev1.Volume {
 
 // Probes are set only for VPP forwarder.
 // Put a simple "echo" into OVS and SR-IOV forwarder's probes.
-func getReadinessProbe(FType string) *corev1.Probe {
+func getReadinessProbe(ForwarderType nsmv1alpha1.ForwarderType) *corev1.Probe {
 
-	if FType == "vpp" {
+	if ForwarderType == nsmv1alpha1.ForwarderVpp {
 		return &corev1.Probe{
 			ProbeHandler: corev1.ProbeHandler{
 				Exec: &corev1.ExecAction{
@@ -291,8 +291,8 @@ func getReadinessProbe(FType string) *corev1.Probe {
 	}
 }
 
-func getLivenessProbe(FType string) *corev1.Probe {
-	if FType == "vpp" {
+func getLivenessProbe(ForwarderType nsmv1alpha1.ForwarderType) *corev1.Probe {
+	if ForwarderType == nsmv1alpha1.ForwarderVpp {
 		return &corev1.Probe{
 			ProbeHandler: corev1.ProbeHandler{
 				Exec: &corev1.ExecAction{
@@ -320,8 +320,8 @@ func getLivenessProbe(FType string) *corev1.Probe {
 	}
 }
 
-func getStartupProbe(FType string) *corev1.Probe {
-	if FType == "vpp" {
+func getStartupProbe(ForwarderType nsmv1alpha1.ForwarderType) *corev1.Probe {
+	if ForwarderType == nsmv1alpha1.ForwarderVpp {
 		return &corev1.Probe{
 			ProbeHandler: corev1.ProbeHandler{
 				Exec: &corev1.ExecAction{

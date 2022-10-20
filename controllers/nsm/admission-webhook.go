@@ -15,27 +15,27 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-type AdmissionWHReconciler struct {
+type WebhookReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
-func NewAdmissionWHReconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme) *AdmissionWHReconciler {
-	return &AdmissionWHReconciler{
+func NewWebhookReconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme) *WebhookReconciler {
+	return &WebhookReconciler{
 		Client: client,
 		Log:    log,
 		Scheme: scheme,
 	}
 }
 
-func (r *AdmissionWHReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NSM) error {
+func (r *WebhookReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NSM) error {
 
 	deploy := &appsv1.Deployment{}
 	err := r.Client.Get(ctx, types.NamespacedName{Name: "admission-webhook-k8s", Namespace: nsm.ObjectMeta.Namespace}, deploy)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			deploy = r.DeploymentForAdmissionWH(nsm)
+			deploy = r.DeploymentForWebhook(nsm)
 			err = r.Client.Create(context.TODO(), deploy)
 			if err != nil {
 				r.Log.Error(err, "failed to create deployment for admission-webhook-k8s")
@@ -50,27 +50,27 @@ func (r *AdmissionWHReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.
 	return nil
 }
 
-func (r *AdmissionWHReconciler) DeploymentForAdmissionWH(nsm *nsmv1alpha1.NSM) *appsv1.Deployment {
+func (r *WebhookReconciler) DeploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deployment {
 
 	privmode := true
 
 	objectMeta := newObjectMeta("admission-webhook-k8s", "nsm", map[string]string{"app": "nsm"})
-	admissionWHLabel := map[string]string{"app": "admission-webhook-k8s"}
+	webhookLabel := map[string]string{"app": "admission-webhook-k8s"}
 	deploy := &appsv1.Deployment{
 		ObjectMeta: objectMeta,
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: admissionWHLabel,
+				MatchLabels: webhookLabel,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: admissionWHLabel,
+					Labels: webhookLabel,
 				},
 				Spec: corev1.PodSpec{
 					ServiceAccountName: serviceAccountName,
 					Containers: []corev1.Container{{
 						Name:            "admission-webhook-k8s",
-						Image:           nsm.Spec.AdmWhImage,
+						Image:           nsm.Spec.WebhookImage,
 						ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 						SecurityContext: &corev1.SecurityContext{
 							Privileged: &privmode,

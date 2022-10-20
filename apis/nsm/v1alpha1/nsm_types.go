@@ -24,7 +24,7 @@ import (
 type Forwarder struct {
 	// Forwarder type
 	// +kubebuilder:validation:Enum=vpp;ovs;sriov
-	Type string `json:"type"`
+	Type ForwarderType `json:"type"`
 	// Forwarder descriptive name
 	// (if empty then "forwarder-<type>" is used)
 	Name string `json:"name,omitempty"`
@@ -32,6 +32,16 @@ type Forwarder struct {
 	// (must be a complete image path with tag)
 	Image string `json:"image,omitempty"`
 }
+
+// ForwarderType is the type of the forwarder
+type ForwarderType string
+
+// Forwarder types
+const (
+	ForwarderOvs   ForwarderType = "ovs"
+	ForwarderSriov ForwarderType = "sriov"
+	ForwarderVpp   ForwarderType = "vpp"
+)
 
 type Registry struct {
 	// Registry type
@@ -50,8 +60,8 @@ type NSMSpec struct {
 	NsmLogLevel string `json:"nsmLogLevel,omitempty"`
 	// admission-webhook-k8s image string
 	// (must be a complete image path with tag)
-	AdmWhImage string   `json:"admwhImage,omitempty"`
-	Registry   Registry `json:"registry"`
+	WebhookImage string   `json:"webhookImage,omitempty"`
+	Registry     Registry `json:"registry"`
 	// NSMGR image string
 	// (must be a complete image path with tag)
 	NsmgrImage string `json:"nsmgrImage,omitempty"`

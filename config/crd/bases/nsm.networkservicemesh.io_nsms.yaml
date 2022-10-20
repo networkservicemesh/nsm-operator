@@ -35,10 +35,6 @@ spec:
           spec:
             description: NSMSpec defines the desired state of NSM
             properties:
-              admwhImage:
-                description: admission-webhook-k8s image string (must be a complete
-                  image path with tag)
-                type: string
               exclPrefImage:
                 description: exclude-prefixes-k8s image string (must be a complete
                   image path with tag)
@@ -92,6 +88,10 @@ spec:
                 type: object
               version:
                 description: tag represents the desired Network Service Mesh version
+                type: string
+              webhookImage:
+                description: admission-webhook-k8s image string (must be a complete
+                  image path with tag)
                 type: string
             required:
             - forwarders

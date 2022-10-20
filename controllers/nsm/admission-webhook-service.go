@@ -14,27 +14,27 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-type AdmissionWHServiceReconciler struct {
+type WebhookServiceReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
-func NewAdmissionWHServiceReconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme) *AdmissionWHServiceReconciler {
-	return &AdmissionWHServiceReconciler{
+func NewWebhookServiceReconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme) *WebhookServiceReconciler {
+	return &WebhookServiceReconciler{
 		Client: client,
 		Log:    log,
 		Scheme: scheme,
 	}
 }
 
-func (r *AdmissionWHServiceReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NSM) error {
+func (r *WebhookServiceReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NSM) error {
 
 	svc := &corev1.Service{}
 	err := r.Client.Get(ctx, types.NamespacedName{Name: "admission-webhook-svc", Namespace: nsm.ObjectMeta.Namespace}, svc)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			svc = r.serviceForAdmissionWH(nsm)
+			svc = r.serviceForWebhook(nsm)
 			err = r.Client.Create(context.TODO(), svc)
 			if err != nil {
 				r.Log.Error(err, "failed to create service for admission-webhook")
@@ -49,9 +49,9 @@ func (r *AdmissionWHServiceReconciler) Reconcile(ctx context.Context, nsm *nsmv1
 	return nil
 }
 
-func (r *AdmissionWHServiceReconciler) serviceForAdmissionWH(nsm *nsmv1alpha1.NSM) *corev1.Service {
+func (r *WebhookServiceReconciler) serviceForWebhook(nsm *nsmv1alpha1.NSM) *corev1.Service {
 
-	admissionWHLabel := map[string]string{"app": "admission-webhook-k8s"}
+	WebhookLabel := map[string]string{"app": "admission-webhook-k8s"}
 
 	objectMeta := newObjectMeta("admission-webhook-svc", "nsm", map[string]string{"app": "nsm"})
 
@@ -64,7 +64,7 @@ func (r *AdmissionWHServiceReconciler) serviceForAdmissionWH(nsm *nsmv1alpha1.NS
 					Port:       443,
 					TargetPort: intstr.FromInt(443)},
 			},
-			Selector: admissionWHLabel,
+			Selector: WebhookLabel,
 		},
 	}
 	// Set NSM instance as the owner and controller
