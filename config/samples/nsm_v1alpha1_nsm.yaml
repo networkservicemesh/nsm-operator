@@ -4,14 +4,15 @@ metadata:
   name: nsm-sample
   namespace: nsm
 spec:
-  version: v1.4.0
+  version: v1.6.0
   nsmPullPolicy: IfNotPresent
-  
+  nsmLogLevel: TRACE
+
   # Forwarding Plane Configs
   forwarders:
-    - Name: vpp
-      Image: ghcr.io/networkservicemesh/cmd-forwarder-vpp:v1.4.0
+    - type: vpp
+      image: ghcr.io/networkservicemesh/cmd-forwarder-vpp:v1.6.0
 
   registry:
     type: memory
-    image: ghcr.io/networkservicemesh/cmd-registry-memory:v1.4.0
+    image: ghcr.io/networkservicemesh/cmd-registry-memory:v1.6.0

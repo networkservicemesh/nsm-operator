@@ -35,26 +35,42 @@ spec:
           spec:
             description: NSMSpec defines the desired state of NSM
             properties:
+              exclPrefImage:
+                description: exclude-prefixes-k8s image string (must be a complete
+                  image path with tag)
+                type: string
               forwarders:
                 items:
                   properties:
-                    Image:
+                    image:
                       description: Forwarder image string (must be a complete image
                         path with tag)
                       type: string
-                    Name:
-                      description: Forwarder descriptive name
+                    name:
+                      description: Forwarder descriptive name (if empty then "forwarder-<type>"
+                        is used)
+                      type: string
+                    type:
+                      description: Forwarder type
+                      enum:
+                      - vpp
+                      - ovs
+                      - sriov
                       type: string
                   required:
-                  - Image
-                  - Name
+                  - type
                   type: object
                 type: array
+              nsmLogLevel:
+                description: Log level of the NSM components
+                type: string
               nsmPullPolicy:
                 description: PullPolicy describes a policy for if/when to pull a container
                   image
                 type: string
               nsmgrImage:
+                description: NSMGR image string (must be a complete image path with
+                  tag)
                 type: string
               registry:
                 properties:
@@ -71,7 +87,11 @@ spec:
                 - type
                 type: object
               version:
-                description: tag represents the desired nsm version
+                description: tag represents the desired Network Service Mesh version
+                type: string
+              webhookImage:
+                description: admission-webhook-k8s image string (must be a complete
+                  image path with tag)
                 type: string
             required:
             - forwarders

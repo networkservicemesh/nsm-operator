@@ -40,6 +40,7 @@ func (r *RegistryServiceReconciler) Reconcile(ctx context.Context, nsm *nsmv1alp
 				r.Log.Error(err, "failed to create service for nsm-registry")
 				return err
 			}
+			r.Log.Info("nsm registry service created")
 			return nil
 		}
 		return err
@@ -64,6 +65,7 @@ func (r *RegistryServiceReconciler) serviceForNsmRegistry(nsm *nsmv1alpha1.NSM) 
 					TargetPort: intstr.FromInt(5002)},
 			},
 			Selector: registryLabel,
+			Type:     corev1.ServiceTypeLoadBalancer,
 		},
 	}
 	// Set NSM instance as the owner and controller

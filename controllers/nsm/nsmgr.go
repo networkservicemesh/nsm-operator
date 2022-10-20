@@ -8,6 +8,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -38,9 +39,10 @@ func (r *NsmgrReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NSM) e
 			ds = r.daemonSetForNSMGR(nsm)
 			err = r.Client.Create(context.TODO(), ds)
 			if err != nil {
-				r.Log.Error(err, "failed to create daemonset for nsm-registry")
+				r.Log.Error(err, "failed to create daemonset for nsmgr")
 				return err
 			}
+			r.Log.Info("nsm nsmgr daemonset created")
 			return nil
 		}
 		return err
@@ -73,10 +75,10 @@ func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.Daemon
 					ServiceAccountName: serviceAccountName,
 					Containers: []corev1.Container{
 
-						// nsmdp container
+						// nsmgr container
 						{
 							Name:            "nsmgr",
-							Image:           nsm.Spec.NsmgrImage + ":" + nsm.Spec.Version,
+							Image:           nsm.Spec.NsmgrImage,
 							ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,
@@ -97,14 +99,98 @@ func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.Daemon
 										FieldPath: "status.podIP",
 									}}},
 								{Name: "NSM_LISTEN_ON", Value: "unix:///var/lib/networkservicemesh/nsm.io.sock,tcp://:5001"},
+								{Name: "NODE_NAME", ValueFrom: &corev1.EnvVarSource{
+									FieldRef: &corev1.ObjectFieldSelector{
+										FieldPath: "spec.nodeName",
+									}}},
+								{Name: "NSM_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
+							},
+							ReadinessProbe: &corev1.Probe{
+								ProbeHandler: corev1.ProbeHandler{
+									Exec: &corev1.ExecAction{
+										Command: []string{
+											"/bin/grpc-health-probe",
+											"-spiffe",
+											"-addr=:5001",
+										},
+									},
+								},
+								FailureThreshold:    120,
+								InitialDelaySeconds: 1,
+								PeriodSeconds:       1,
+								TimeoutSeconds:      2,
+							},
+							LivenessProbe: &corev1.Probe{
+								ProbeHandler: corev1.ProbeHandler{
+									Exec: &corev1.ExecAction{
+										Command: []string{
+											"/bin/grpc-health-probe",
+											"-spiffe",
+											"-addr=:5001",
+										},
+									},
+								},
+								FailureThreshold:    25,
+								InitialDelaySeconds: 10,
+								PeriodSeconds:       5,
+								TimeoutSeconds:      2,
+							},
+							StartupProbe: &corev1.Probe{
+								ProbeHandler: corev1.ProbeHandler{
+									Exec: &corev1.ExecAction{
+										Command: []string{
+											"/bin/grpc-health-probe",
+											"-spiffe",
+											"-addr=:5001",
+										},
+									},
+								},
+								FailureThreshold: 25,
+								PeriodSeconds:    5,
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{Name: "nsm-socket",
 									MountPath: "/var/lib/networkservicemesh",
 								},
+								{Name: "exclude-prefixes-volume",
+									MountPath: "/var/lib/networkservicemesh/config/",
+								},
 								{Name: "spire-agent-socket",
 									MountPath: "/run/spire/sockets",
 									ReadOnly:  true,
+								},
+							},
+							Resources: corev1.ResourceRequirements{
+								Limits: corev1.ResourceList{
+									corev1.ResourceCPU:    resource.MustParse("400m"),
+									corev1.ResourceMemory: resource.MustParse("200Mi"),
+								},
+								Requests: corev1.ResourceList{
+									corev1.ResourceCPU:    resource.MustParse("200m"),
+									corev1.ResourceMemory: resource.MustParse("100Mi"),
+								},
+							},
+						},
+						// exclude-prefixes container
+						{
+							Name:            "exclude-prefixes",
+							Image:           nsm.Spec.ExclPrefImage,
+							ImagePullPolicy: nsm.Spec.NsmPullPolicy,
+							SecurityContext: &corev1.SecurityContext{
+								Privileged: &privmode,
+							},
+							Env: []corev1.EnvVar{
+								{Name: "NSM_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{Name: "exclude-prefixes-volume",
+									MountPath: "/var/lib/networkservicemesh/config",
+								},
+							},
+							Resources: corev1.ResourceRequirements{
+								Limits: corev1.ResourceList{
+									corev1.ResourceCPU:    resource.MustParse("75m"),
+									corev1.ResourceMemory: resource.MustParse("40Mi"),
 								},
 							},
 						}},
@@ -123,6 +209,11 @@ func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.Daemon
 									Path: "/run/spire/sockets",
 									Type: &volTypeSpire,
 								}}},
+						{
+							Name: "exclude-prefixes-volume",
+							VolumeSource: corev1.VolumeSource{
+								EmptyDir: &corev1.EmptyDirVolumeSource{},
+							}},
 					},
 				},
 			},
