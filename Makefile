@@ -36,10 +36,10 @@ IMAGE_TAG_BASE ?= quay.io/acmenezes/nsm-operator
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # Image URL to use all building/pushing image targets
-#IMG ?= quay.io/acmenezes/nsm-operator:v1.4.0
-IMG ?= localhost:5001/nsm-operator:latest
-#BUILDER ?= podman
-BUILDER ?= docker
+IMG ?= quay.io/acmenezes/nsm-operator:v1.6.0
+# IMG ?= localhost:5001/nsm-operator:latest
+BUILDER ?= podman
+
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
