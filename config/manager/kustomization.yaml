@@ -4,5 +4,5 @@ resources:
 - manager.yaml
 images:
 - name: controller
-  newName: localhost:5001/nsm-operator
-  newTag: latest
+  newName: quay.io/acmenezes/nsm-operator
+  newTag: v1.6.0

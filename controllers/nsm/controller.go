@@ -94,12 +94,12 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		}
 	}
 
-	if nsm.Spec.NsmgrImage == "" {
-		nsm.Spec.NsmgrImage = nsmgrImage + ":" + nsm.Spec.Version
+	if nsm.Spec.Nsmgr.Image == "" {
+		nsm.Spec.Nsmgr.Image = nsmgrImage + ":" + nsm.Spec.Version
 	}
 
-	if nsm.Spec.ExclPrefImage == "" {
-		nsm.Spec.ExclPrefImage = exclPrefImage + ":" + nsm.Spec.Version
+	if nsm.Spec.ExclPref.Image == "" {
+		nsm.Spec.ExclPref.Image = exclPrefImage + ":" + nsm.Spec.Version
 	}
 
 	reconcilers := []Reconciler{
@@ -109,7 +109,7 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	}
 
 	// Add admission-webhook-k8s reconciler on demand
-	if nsm.Spec.WebhookImage != "" {
+	if nsm.Spec.Webhook.Image == "" {
 		reconcilers = append(reconcilers,
 			NewWebhookReconciler(r.Client, Log, r.Scheme),
 			NewWebhookServiceReconciler(r.Client, Log, r.Scheme))

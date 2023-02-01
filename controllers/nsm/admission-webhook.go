@@ -56,6 +56,30 @@ func (r *WebhookReconciler) DeploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.D
 
 	objectMeta := newObjectMeta("admission-webhook-k8s", "nsm", map[string]string{"app": "nsm"})
 	webhookLabel := map[string]string{"app": "admission-webhook-k8s"}
+
+	envVars := []corev1.EnvVar{}
+	if nsm.Spec.Webhook.EnvVars != nil {
+		envVars = nsm.Spec.Nsmgr.EnvVars
+	} else {
+		envVars = []corev1.EnvVar{
+			{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
+			{Name: "NSM_SERVICE_NAME", Value: "admission-webhook-svc"},
+			{Name: "NSM_NAME", ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.name",
+				}}},
+			{Name: "NSM_NAMESPACE", ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.namespace",
+				}}},
+			{Name: "NSM_ANNOTATION", Value: "networkservicemesh.io"},
+			{Name: "NSM_CONTAINER_IMAGES", Value: "ghcr.io/networkservicemesh/cmd-nsc:" + nsm.Spec.Version},
+			{Name: "NSM_INIT_CONTAINER_IMAGES", Value: "ghcr.io/networkservicemesh/cmd-nsc-init:" + nsm.Spec.Version},
+			{Name: "NSM_LABELS", Value: "spiffe.io/spiffe-id:true"},
+			{Name: "NSM_ENVS", Value: "NSM_LOG_LEVEL=" + getNsmLogLevel(nsm)},
+		}
+	}
+
 	deploy := &appsv1.Deployment{
 		ObjectMeta: objectMeta,
 		Spec: appsv1.DeploymentSpec{
@@ -70,28 +94,12 @@ func (r *WebhookReconciler) DeploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.D
 					ServiceAccountName: serviceAccountName,
 					Containers: []corev1.Container{{
 						Name:            "admission-webhook-k8s",
-						Image:           nsm.Spec.WebhookImage,
+						Image:           nsm.Spec.Webhook.Image,
 						ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 						SecurityContext: &corev1.SecurityContext{
 							Privileged: &privmode,
 						},
-						Env: []corev1.EnvVar{
-							{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
-							{Name: "NSM_SERVICE_NAME", Value: "admission-webhook-svc"},
-							{Name: "NSM_NAME", ValueFrom: &corev1.EnvVarSource{
-								FieldRef: &corev1.ObjectFieldSelector{
-									FieldPath: "metadata.name",
-								}}},
-							{Name: "NSM_NAMESPACE", ValueFrom: &corev1.EnvVarSource{
-								FieldRef: &corev1.ObjectFieldSelector{
-									FieldPath: "metadata.namespace",
-								}}},
-							{Name: "NSM_ANNOTATION", Value: "networkservicemesh.io"},
-							{Name: "NSM_CONTAINER_IMAGES", Value: "ghcr.io/networkservicemesh/cmd-nsc:" + nsm.Spec.Version},
-							{Name: "NSM_INIT_CONTAINER_IMAGES", Value: "ghcr.io/networkservicemesh/cmd-nsc-init:" + nsm.Spec.Version},
-							{Name: "NSM_LABELS", Value: "spiffe.io/spiffe-id:true"},
-							{Name: "NSM_ENVS", Value: "NSM_LOG_LEVEL=" + getNsmLogLevel(nsm)},
-						},
+						Env: envVars,
 					}},
 				},
 			},

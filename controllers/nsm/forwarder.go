@@ -46,7 +46,7 @@ func (r *ForwarderReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NS
 			if apierrors.IsNotFound(err) {
 
 				objectMeta := newObjectMeta(Name, "nsm", map[string]string{"app": "nsm"})
-				ds = r.daemonSetForForwarder(nsm, objectMeta, r.ForwarderType)
+				ds = r.daemonSetForForwarder(nsm, objectMeta, r.ForwarderType, fp.EnvVars)
 
 				err = r.Client.Create(context.TODO(), ds)
 				if err != nil {
@@ -63,10 +63,17 @@ func (r *ForwarderReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NS
 	return nil
 }
 
-func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, objectMeta metav1.ObjectMeta, ForwarderType nsmv1alpha1.ForwarderType) *appsv1.DaemonSet {
+func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, objectMeta metav1.ObjectMeta, ForwarderType nsmv1alpha1.ForwarderType, envVars []corev1.EnvVar) *appsv1.DaemonSet {
 
 	privmode := true
 	forwarderLabel := map[string]string{"app": "forwarder", "spiffe.io/spiffe-id": "true"}
+
+	EnvVars := []corev1.EnvVar{}
+	if envVars != nil {
+		EnvVars = envVars
+	} else {
+		EnvVars = getEnvVars(nsm, ForwarderType)
+	}
 
 	daemonset := &appsv1.DaemonSet{
 
@@ -94,7 +101,7 @@ func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, object
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,
 							},
-							Env:            getEnvVars(nsm, ForwarderType),
+							Env:            EnvVars,
 							ReadinessProbe: getReadinessProbe(ForwarderType),
 							LivenessProbe:  getLivenessProbe(ForwarderType),
 							StartupProbe:   getStartupProbe(ForwarderType),
@@ -157,6 +164,7 @@ func getForwarderResourceReqs(ForwarderType nsmv1alpha1.ForwarderType) corev1.Re
 }
 
 func getEnvVars(nsm *nsmv1alpha1.NSM, ForwarderType nsmv1alpha1.ForwarderType) []corev1.EnvVar {
+
 	EnvVars := []corev1.EnvVar{
 		{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
 		{Name: "NSM_TUNNEL_IP", ValueFrom: &corev1.EnvVarSource{
