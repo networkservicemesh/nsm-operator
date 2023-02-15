@@ -31,6 +31,8 @@ type Forwarder struct {
 	// Forwarder image string
 	// (must be a complete image path with tag)
 	Image string `json:"image,omitempty"`
+	// EnvVars for Forwarder configuration
+	EnvVars []corev1.EnvVar `json:"envVars,omitempty"`
 }
 
 // ForwarderType is the type of the forwarder
@@ -49,6 +51,33 @@ type Registry struct {
 	Type string `json:"type"`
 	// Registry Image with tag
 	Image string `json:"image,omitempty"`
+	// EnvVars for Registry configuration
+	EnvVars []corev1.EnvVar `json:"envVars,omitempty"`
+}
+
+// Webhook
+type Webhook struct {
+	// admission-webhook-k8s image string
+	// (must be a complete image path with tag)
+	Image string `json:"image,omitempty"`
+	// EnvVars for Webhook configuration
+	EnvVars []corev1.EnvVar `json:"envVars,omitempty"`
+}
+
+type Nsmgr struct {
+	// NSMGR image string
+	// (must be a complete image path with tag)
+	Image string `json:"image,omitempty"`
+	// EnvVars for Nsmgr configuration
+	EnvVars []corev1.EnvVar `json:"envVars,omitempty"`
+}
+
+type ExclPref struct {
+	// exclude-prefixes-k8s image string
+	// (must be a complete image path with tag)
+	Image string `json:"exclPrefImage,omitempty"`
+	// EnvVars for ExclPrefImage configuration
+	EnvVars []corev1.EnvVar `json:"envVars,omitempty"`
 }
 
 // NSMSpec defines the desired state of NSM
@@ -58,17 +87,17 @@ type NSMSpec struct {
 	NsmPullPolicy corev1.PullPolicy `json:"nsmPullPolicy"`
 	// Log level of the NSM components
 	NsmLogLevel string `json:"nsmLogLevel,omitempty"`
-	// admission-webhook-k8s image string
-	// (must be a complete image path with tag)
-	WebhookImage string   `json:"webhookImage,omitempty"`
-	Registry     Registry `json:"registry"`
+	// webhook for nsm
+	Webhook Webhook `json:"webhook,omitempty"`
+	// registry for nsm
+	Registry Registry `json:"registry"`
 	// NSMGR image string
 	// (must be a complete image path with tag)
-	NsmgrImage string `json:"nsmgrImage,omitempty"`
-	// exclude-prefixes-k8s image string
-	// (must be a complete image path with tag)
-	ExclPrefImage string      `json:"exclPrefImage,omitempty"`
-	Forwarders    []Forwarder `json:"forwarders"`
+	Nsmgr Nsmgr `json:"nsmgr,omitempty"`
+	// exclude-prefixes-k8s
+	ExclPref ExclPref `json:"exclPref,omitempty"`
+	// List of forwarders to be used with nsm
+	Forwarders []Forwarder `json:"forwarders"`
 }
 
 // NSMPhase is the type for the operator phases

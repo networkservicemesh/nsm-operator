@@ -118,6 +118,10 @@ func (r *RegistryReconciler) DeploymentForRegistry(nsm *nsmv1alpha1.NSM) *appsv1
 
 func getEnvVar(nsm *nsmv1alpha1.NSM) *[]corev1.EnvVar {
 
+	if nsm.Spec.Registry.EnvVars != nil {
+		return &nsm.Spec.Registry.EnvVars
+	}
+
 	switch nsm.Spec.Registry.Type {
 
 	case "memory":

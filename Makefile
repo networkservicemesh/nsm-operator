@@ -37,7 +37,6 @@ BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # Image URL to use all building/pushing image targets
 IMG ?= quay.io/acmenezes/nsm-operator:v1.6.0
-# IMG ?= localhost:5001/nsm-operator:latest
 BUILDER ?= podman
 
 

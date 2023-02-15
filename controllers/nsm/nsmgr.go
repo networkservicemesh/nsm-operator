@@ -61,6 +61,16 @@ func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.Daemon
 
 	nsmgrLabel := map[string]string{"app": "nsmgr", "spiffe.io/spiffe-id": "true"}
 
+	exclPrefEnvVars := []corev1.EnvVar{}
+
+	if nsm.Spec.ExclPref.EnvVars == nil {
+		exclPrefEnvVars = []corev1.EnvVar{
+			{Name: "NSM_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
+		}
+	} else {
+		exclPrefEnvVars = nsm.Spec.ExclPref.EnvVars
+	}
+
 	daemonset := &appsv1.DaemonSet{
 		ObjectMeta: objectMeta,
 		Spec: appsv1.DaemonSetSpec{
@@ -78,7 +88,7 @@ func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.Daemon
 						// nsmgr container
 						{
 							Name:            "nsmgr",
-							Image:           nsm.Spec.NsmgrImage,
+							Image:           nsm.Spec.Nsmgr.Image,
 							ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,
@@ -174,14 +184,12 @@ func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.Daemon
 						// exclude-prefixes container
 						{
 							Name:            "exclude-prefixes",
-							Image:           nsm.Spec.ExclPrefImage,
+							Image:           nsm.Spec.ExclPref.Image,
 							ImagePullPolicy: nsm.Spec.NsmPullPolicy,
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,
 							},
-							Env: []corev1.EnvVar{
-								{Name: "NSM_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
-							},
+							Env: exclPrefEnvVars,
 							VolumeMounts: []corev1.VolumeMount{
 								{Name: "exclude-prefixes-volume",
 									MountPath: "/var/lib/networkservicemesh/config",
