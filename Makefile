@@ -3,7 +3,7 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 0.0.1
+VERSION ?= 1.8.0
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -36,7 +36,7 @@ IMAGE_TAG_BASE ?= quay.io/acmenezes/nsm-operator
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # Image URL to use all building/pushing image targets
-IMG ?= quay.io/acmenezes/nsm-operator:v1.6.0
+IMG ?= quay.io/acmenezes/nsm-operator:v1.8.0
 BUILDER ?= podman
 
 
@@ -115,13 +115,6 @@ install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
-# NSM Specific targets:
-nsm-namespace:
-	@kubectl create ns nsm
-
-delete-nsm-namespace:
-	@kubectl delete ns nsm
-
 deploy-spire:
 	@kubectl apply -f config/spire/spire.yaml
 	@echo "Waiting for spire to get ready..."
@@ -140,7 +133,7 @@ undeploy-spire:
 	@kubectl delete ns spire
 
 ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-deploy-nsm-operator: nsm-namespace manifests kustomize
+deploy-nsm-operator: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
@@ -151,7 +144,7 @@ delete-nsm-operator:
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
 ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
-undeploy-nsm-operator: delete-nsm-operator delete-nsm-namespace
+undeploy-nsm-operator: delete-nsm-operator
 
 ## Undeploy NSM Operator and SPIRE.
 undeploy: undeploy-nsm-operator undeploy-spire
@@ -195,11 +188,11 @@ bundle: manifests kustomize ## Generate bundle manifests and metadata, then vali
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	${BUILDER} build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
-	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
+	$(MAKE) container-push IMG=$(BUNDLE_IMG)
 
 .PHONY: opm
 OPM = ./bin/opm

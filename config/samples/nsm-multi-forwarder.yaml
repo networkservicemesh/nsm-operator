@@ -4,21 +4,21 @@ metadata:
   name: nsm-sample-multi-forwarder
   namespace: nsm
 spec:
-  version: v1.5.0
+  version: v1.8.0
   nsmPullPolicy: IfNotPresent
   nsmLogLevel: TRACE
-  webhookImage: ghcr.io/networkservicemesh/cmd-admission-webhook-k8s:v1.5.0
+  webhookImage: ghcr.io/networkservicemesh/cmd-admission-webhook-k8s:v1.8.0
 
   # Forwarding Plane Configs
   forwarders:
     - name: forwarder-ovs
       type: ovs
-      image: ghcr.io/networkservicemesh/cmd-forwarder-ovs:v1.5.0
+      image: ghcr.io/networkservicemesh/cmd-forwarder-ovs:v1.8.0
     - type: vpp
-      image: ghcr.io/networkservicemesh/cmd-forwarder-vpp:v1.5.0
+      image: ghcr.io/networkservicemesh/cmd-forwarder-vpp:v1.8.0
 #    - type: sriov
-#      image: ghcr.io/networkservicemesh/cmd-forwarder-sriov:v1.5.0
+#      image: ghcr.io/networkservicemesh/cmd-forwarder-sriov:v1.8.0
 
   registry:
     type: k8s
-    image: ghcr.io/networkservicemesh/cmd-registry-k8s:v1.5.0
+    image: ghcr.io/networkservicemesh/cmd-registry-k8s:v1.8.0
