@@ -109,7 +109,7 @@ func (r *NSMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	}
 
 	// Add admission-webhook-k8s reconciler on demand
-	if nsm.Spec.Webhook.Image == "" {
+	if nsm.Spec.Webhook.Image != "" {
 		reconcilers = append(reconcilers,
 			NewWebhookReconciler(r.Client, Log, r.Scheme),
 			NewWebhookServiceReconciler(r.Client, Log, r.Scheme))

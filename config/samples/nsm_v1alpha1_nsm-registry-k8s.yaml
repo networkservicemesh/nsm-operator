@@ -18,4 +18,4 @@ spec:
     image: ghcr.io/networkservicemesh/cmd-registry-k8s:v1.8.0
 
   webhook:
-    image: ghcr.io/networkservicemesh/admission-webhook-k8s:v1.8.0
+    image: ghcr.io/networkservicemesh/cmd-admission-webhook-k8s:v1.8.0

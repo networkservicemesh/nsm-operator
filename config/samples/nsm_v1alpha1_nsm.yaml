@@ -4,7 +4,7 @@ metadata:
   name: nsm-sample
   namespace: nsm
 spec:
-  version: v1.8.0
+  version: v1.6.0
   nsmPullPolicy: IfNotPresent
   nsmLogLevel: TRACE
 
@@ -18,4 +18,4 @@ spec:
     image: ghcr.io/networkservicemesh/cmd-registry-memory:v1.8.0
 
   webhook:
-    image: ghcr.io/networkservicemesh/admission-webhook-k8s:v1.8.0
+    image: ghcr.io/networkservicemesh/cmd-admission-webhook-k8s:v1.8.0
