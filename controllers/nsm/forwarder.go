@@ -68,8 +68,10 @@ func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, object
 	privmode := true
 	forwarderLabel := map[string]string{"app": "forwarder", "spiffe.io/spiffe-id": "true"}
 
-	EnvVars := envVars
-	if EnvVars == nil {
+	EnvVars := []corev1.EnvVar{}
+	if envVars != nil {
+		EnvVars = envVars
+	} else {
 		EnvVars = getEnvVars(nsm, ForwarderType)
 	}
 

@@ -53,10 +53,14 @@ func (r *RegistryReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NSM
 
 func (r *RegistryReconciler) DeploymentForRegistry(nsm *nsmv1alpha1.NSM) *appsv1.Deployment {
 
+	privmode := true
+
 	objectMeta := newObjectMeta("nsm-registry", "nsm", map[string]string{"app": "nsm"})
 
 	registryLabel := map[string]string{"app": "nsm-registry", "spiffe.io/spiffe-id": "true"}
 	volTypeDirectory := corev1.HostPathDirectory
+
+	envVar := getEnvVar(nsm)
 
 	deploy := &appsv1.Deployment{
 		ObjectMeta: objectMeta,
@@ -74,7 +78,10 @@ func (r *RegistryReconciler) DeploymentForRegistry(nsm *nsmv1alpha1.NSM) *appsv1
 						Name:            "nsm-registry",
 						Image:           nsm.Spec.Registry.Image,
 						ImagePullPolicy: nsm.Spec.NsmPullPolicy,
-						Env:             *getEnvVar(nsm),
+						SecurityContext: &corev1.SecurityContext{
+							Privileged: &privmode,
+						},
+						Env: *envVar,
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 5002,
 							HostPort:      5002}},
@@ -110,28 +117,33 @@ func (r *RegistryReconciler) DeploymentForRegistry(nsm *nsmv1alpha1.NSM) *appsv1
 }
 
 func getEnvVar(nsm *nsmv1alpha1.NSM) *[]corev1.EnvVar {
+
 	if nsm.Spec.Registry.EnvVars != nil {
 		return &nsm.Spec.Registry.EnvVars
 	}
-	// From version 1.7.0 the names of the environment variable changed to NSM, instead of REGISTRY_K8S or REGISTRY_MEMORY
-	prefix := "NSM_"
-	if nsm.Spec.Version < "v1.7.0" {
-		switch nsm.Spec.Registry.Type {
-		case "memory":
-			prefix = "REGISTRY_MEMORY_"
-		case "k8s":
-			prefix = "REGISTRY_K8S_"
+
+	switch nsm.Spec.Registry.Type {
+
+	case "memory":
+		return &[]corev1.EnvVar{
+			{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
+			{Name: "REGISTRY_MEMORY_LISTEN_ON", Value: "tcp://:5002"},
+			{Name: "REGISTRY_MEMORY_PROXY_REGISTRY_URL", Value: "nsmgr-proxy:5004"},
+			{Name: "REGISTRY_MEMORY_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
+		}
+	case "k8s":
+		return &[]corev1.EnvVar{
+			{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
+			{Name: "REGISTRY_K8S_LISTEN_ON", Value: "tcp://:5002"},
+			{Name: "REGISTRY_K8S_PROXY_REGISTRY_URL", Value: "nsmgr-proxy:5004"},
+			{Name: "REGISTRY_K8S_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
+			{Name: "REGISTRY_K8S_NAMESPACE", ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.namespace",
+				},
+			}},
 		}
 	}
 
-	return &[]corev1.EnvVar{{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
-		{Name: prefix + "LISTEN_ON", Value: "tcp://:5002"},
-		{Name: prefix + "PROXY_REGISTRY_URL", Value: "nsmgr-proxy:5004"},
-		{Name: prefix + "LOG_LEVEL", Value: getNsmLogLevel(nsm)},
-		{Name: prefix + "NAMESPACE", ValueFrom: &corev1.EnvVarSource{
-			FieldRef: &corev1.ObjectFieldSelector{
-				FieldPath: "metadata.namespace",
-			},
-		}},
-	}
+	return nil
 }
