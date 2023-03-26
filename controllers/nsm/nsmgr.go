@@ -61,14 +61,12 @@ func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.Daemon
 
 	nsmgrLabel := map[string]string{"app": "nsmgr", "spiffe.io/spiffe-id": "true"}
 
-	exclPrefEnvVars := []corev1.EnvVar{}
+	exclPrefEnvVars := nsm.Spec.ExclPref.EnvVars
 
-	if nsm.Spec.ExclPref.EnvVars == nil {
+	if exclPrefEnvVars == nil {
 		exclPrefEnvVars = []corev1.EnvVar{
 			{Name: "NSM_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
 		}
-	} else {
-		exclPrefEnvVars = nsm.Spec.ExclPref.EnvVars
 	}
 
 	daemonset := &appsv1.DaemonSet{

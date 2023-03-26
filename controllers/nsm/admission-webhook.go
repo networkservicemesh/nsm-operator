@@ -57,10 +57,8 @@ func (r *WebhookReconciler) DeploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.D
 	objectMeta := newObjectMeta("admission-webhook-k8s", "nsm", map[string]string{"app": "nsm"})
 	webhookLabel := map[string]string{"app": "admission-webhook-k8s"}
 
-	envVars := []corev1.EnvVar{}
-	if nsm.Spec.Webhook.EnvVars != nil {
-		envVars = nsm.Spec.Nsmgr.EnvVars
-	} else {
+	envVars := nsm.Spec.Webhook.EnvVars
+	if envVars == nil {
 		envVars = []corev1.EnvVar{
 			{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
 			{Name: "NSM_SERVICE_NAME", Value: "admission-webhook-svc"},
