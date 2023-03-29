@@ -234,3 +234,27 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+
+.PHONY: ci-yaml
+ci-yaml:
+	cat config/namespace/namespace.yaml > hack/nsm-operator-ci.yaml
+	echo "" >> hack/nsm-operator-ci.yaml
+	cat config/crd/networkservicemesh.io/crd-nse.yaml >> hack/nsm-operator-ci.yaml
+	cat config/crd/networkservicemesh.io/crd-ns.yaml >> hack/nsm-operator-ci.yaml
+	cat config/crd/bases/nsm.networkservicemesh.io_nsms.yaml >> hack/nsm-operator-ci.yaml
+	echo "---" >> hack/nsm-operator-ci.yaml	
+	cat config/rbac/service_account.yaml >> hack/nsm-operator-ci.yaml
+	echo "---" >> hack/nsm-operator-ci.yaml	
+	cat config/rbac/leader_election_role.yaml >> hack/nsm-operator-ci.yaml	
+	cat config/rbac/role.yaml >> hack/nsm-operator-ci.yaml
+	cat config/rbac/role_scc.yaml >> hack/nsm-operator-ci.yaml
+	echo "" >> hack/nsm-operator-ci.yaml	
+	cat config/rbac/role-registry-k8s.yaml >> hack/nsm-operator-ci.yaml
+	echo "" >> hack/nsm-operator-ci.yaml	
+	cat config/rbac/role_binding.yaml >> hack/nsm-operator-ci.yaml
+	echo "" >> hack/nsm-operator-ci.yaml	
+	cat config/rbac/role_binding-registry-k8s.yaml >> hack/nsm-operator-ci.yaml
+	echo "---" >> hack/nsm-operator-ci.yaml
+	cat config/rbac/leader_election_role_binding.yaml >> hack/nsm-operator-ci.yaml
+	echo "---" >> hack/nsm-operator-ci.yaml
+	./bin/kustomize build config/manager >> hack/nsm-operator-ci.yaml
