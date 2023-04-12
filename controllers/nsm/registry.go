@@ -113,13 +113,13 @@ func getEnvVar(nsm *nsmv1alpha1.NSM) *[]corev1.EnvVar {
 	if nsm.Spec.Registry.EnvVars != nil {
 		return &nsm.Spec.Registry.EnvVars
 	}
-	// From version 1.7.0 the names of the environment variable changed to NSM, instead of REGISTRY_K8S or REGISTRY_MEMORY
 	prefix := "NSM_"
-	if nsm.Spec.Version < "v1.7.0" {
-		switch nsm.Spec.Registry.Type {
-		case "memory":
-			prefix = "REGISTRY_MEMORY_"
-		case "k8s":
+	switch nsm.Spec.Registry.Type {
+	case "memory":
+		prefix = "REGISTRY_MEMORY_"
+	case "k8s":
+		// From version 1.7.0 the prefix of the environment variables changed to NSM, instead of REGISTRY_K8S
+		if nsm.Spec.Version < "v1.7.0" {
 			prefix = "REGISTRY_K8S_"
 		}
 	}
