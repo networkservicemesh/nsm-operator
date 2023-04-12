@@ -11,6 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -52,8 +53,6 @@ func (r *WebhookReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NSM)
 
 func (r *WebhookReconciler) DeploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.Deployment {
 
-	privmode := true
-
 	objectMeta := newObjectMeta("admission-webhook-k8s", "nsm", map[string]string{"app": "nsm"})
 	webhookLabel := map[string]string{"app": "admission-webhook-k8s"}
 
@@ -94,10 +93,16 @@ func (r *WebhookReconciler) DeploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.D
 						Name:            "admission-webhook-k8s",
 						Image:           nsm.Spec.Webhook.Image,
 						ImagePullPolicy: nsm.Spec.NsmPullPolicy,
-						SecurityContext: &corev1.SecurityContext{
-							Privileged: &privmode,
+						Env:             envVars,
+						ReadinessProbe: &corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Path:   "/ready",
+									Port:   intstr.FromInt(443),
+									Scheme: "HTTPS",
+								},
+							},
 						},
-						Env: envVars,
 					}},
 				},
 			},
