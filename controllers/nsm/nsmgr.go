@@ -61,6 +61,26 @@ func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.Daemon
 
 	nsmgrLabel := map[string]string{"app": "nsmgr", "spiffe.io/spiffe-id": "true"}
 
+	nsmgrEnvVars := nsm.Spec.Nsmgr.EnvVars
+	if nsmgrEnvVars == nil {
+		nsmgrEnvVars = []corev1.EnvVar{
+			{Name: "NSM_NAME", ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.name",
+				}}},
+			{Name: "NSM_REGISTRY_URL", Value: "nsm-registry-svc:5002"},
+			{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "status.podIP",
+				}}},
+			{Name: "NSM_LISTEN_ON", Value: "unix:///var/lib/networkservicemesh/nsm.io.sock,tcp://:5001"},
+			{Name: "NODE_NAME", ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "spec.nodeName",
+				}}},
+			{Name: "NSM_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
+		}
+	}
 	exclPrefEnvVars := nsm.Spec.ExclPref.EnvVars
 
 	if exclPrefEnvVars == nil {
@@ -94,25 +114,7 @@ func (r *NsmgrReconciler) daemonSetForNSMGR(nsm *nsmv1alpha1.NSM) *appsv1.Daemon
 							Ports: []corev1.ContainerPort{{
 								ContainerPort: 5001,
 								HostPort:      5001}},
-
-							Env: []corev1.EnvVar{
-								{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
-								{Name: "NSM_NAME", ValueFrom: &corev1.EnvVarSource{
-									FieldRef: &corev1.ObjectFieldSelector{
-										FieldPath: "metadata.name",
-									}}},
-								{Name: "NSM_REGISTRY_URL", Value: "nsm-registry-svc:5002"},
-								{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{
-									FieldRef: &corev1.ObjectFieldSelector{
-										FieldPath: "status.podIP",
-									}}},
-								{Name: "NSM_LISTEN_ON", Value: "unix:///var/lib/networkservicemesh/nsm.io.sock,tcp://:5001"},
-								{Name: "NODE_NAME", ValueFrom: &corev1.EnvVarSource{
-									FieldRef: &corev1.ObjectFieldSelector{
-										FieldPath: "spec.nodeName",
-									}}},
-								{Name: "NSM_LOG_LEVEL", Value: getNsmLogLevel(nsm)},
-							},
+							Env: insertSpireAgentSocketEnv(nsmgrEnvVars, getSpireAgentSocket(nsm)),
 							ReadinessProbe: &corev1.Probe{
 								ProbeHandler: corev1.ProbeHandler{
 									Exec: &corev1.ExecAction{

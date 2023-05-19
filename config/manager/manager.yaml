@@ -15,7 +15,6 @@ spec:
     metadata:
       labels:
         control-plane: nsm-operator
-        "spiffe.io/spiffe-id": "true"
     spec:
       serviceAccountName: nsm-operator
       containers:

@@ -158,3 +158,27 @@ func getNsmLogLevel(nsm *nsmv1alpha1.NSM) string {
 	}
 	return "INFO"
 }
+
+func getSpireAgentSocket(nsm *nsmv1alpha1.NSM) string {
+	SpireAgentSocket := nsm.Spec.SpireAgentSocket
+	if SpireAgentSocket == "" {
+		SpireAgentSocket = "unix:///run/spire/sockets/agent.sock"
+	}
+	return SpireAgentSocket
+}
+
+// If SpireAgentSocket is defined in the CR then its value will be used in
+// SPIFFE_ENDPOINT_SOCKET environment variable
+func insertSpireAgentSocketEnv(envVars []corev1.EnvVar, SpireAgentSocket string) []corev1.EnvVar {
+	SpireAgentSocketEnv := []corev1.EnvVar{{Name: "SPIFFE_ENDPOINT_SOCKET", Value: SpireAgentSocket}}
+	for idx, envVar := range envVars {
+		if envVar.Name == "SPIFFE_ENDPOINT_SOCKET" {
+			envVars = removeItem(envVars, idx)
+		}
+	}
+	return append(SpireAgentSocketEnv, envVars...)
+}
+
+func removeItem(EnvVars []corev1.EnvVar, index int) []corev1.EnvVar {
+	return append(EnvVars[:index], EnvVars[index+1:]...)
+}

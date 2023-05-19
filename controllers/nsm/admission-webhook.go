@@ -59,7 +59,6 @@ func (r *WebhookReconciler) DeploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.D
 	envVars := nsm.Spec.Webhook.EnvVars
 	if envVars == nil {
 		envVars = []corev1.EnvVar{
-			{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
 			{Name: "NSM_SERVICE_NAME", Value: "admission-webhook-svc"},
 			{Name: "NSM_NAME", ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
@@ -93,7 +92,7 @@ func (r *WebhookReconciler) DeploymentForWebhook(nsm *nsmv1alpha1.NSM) *appsv1.D
 						Name:            "admission-webhook-k8s",
 						Image:           nsm.Spec.Webhook.Image,
 						ImagePullPolicy: nsm.Spec.NsmPullPolicy,
-						Env:             envVars,
+						Env:             insertSpireAgentSocketEnv(envVars, getSpireAgentSocket(nsm)),
 						ReadinessProbe: &corev1.Probe{
 							ProbeHandler: corev1.ProbeHandler{
 								HTTPGet: &corev1.HTTPGetAction{

@@ -68,9 +68,8 @@ func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, object
 	privmode := true
 	forwarderLabel := map[string]string{"app": "forwarder", "spiffe.io/spiffe-id": "true"}
 
-	EnvVars := envVars
-	if EnvVars == nil {
-		EnvVars = getEnvVars(nsm, ForwarderType)
+	if envVars == nil {
+		envVars = getEnvVars(nsm, ForwarderType)
 	}
 
 	daemonset := &appsv1.DaemonSet{
@@ -99,7 +98,7 @@ func (r *ForwarderReconciler) daemonSetForForwarder(nsm *nsmv1alpha1.NSM, object
 							SecurityContext: &corev1.SecurityContext{
 								Privileged: &privmode,
 							},
-							Env:            EnvVars,
+							Env:            insertSpireAgentSocketEnv(envVars, getSpireAgentSocket(nsm)),
 							ReadinessProbe: getReadinessProbe(ForwarderType),
 							LivenessProbe:  getLivenessProbe(ForwarderType),
 							StartupProbe:   getStartupProbe(ForwarderType),
@@ -164,7 +163,6 @@ func getForwarderResourceReqs(ForwarderType nsmv1alpha1.ForwarderType) corev1.Re
 func getEnvVars(nsm *nsmv1alpha1.NSM, ForwarderType nsmv1alpha1.ForwarderType) []corev1.EnvVar {
 
 	EnvVars := []corev1.EnvVar{
-		{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
 		{Name: "NSM_TUNNEL_IP", ValueFrom: &corev1.EnvVarSource{
 			FieldRef: &corev1.ObjectFieldSelector{
 				FieldPath: "status.podIP",
