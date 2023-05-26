@@ -46,6 +46,15 @@ func (r *RegistryReconciler) Reconcile(ctx context.Context, nsm *nsmv1alpha1.NSM
 			return nil
 		}
 		return err
+	} else if nsm.Spec.Registry.ReplicaCount != *deploy.Spec.Replicas {
+		deploy.Spec.Replicas = &nsm.Spec.Registry.ReplicaCount
+		err = r.Update(ctx, deploy)
+		if err != nil {
+			r.Log.Error(err, "failed to update the replica count of nsm registry deployment")
+			return err
+		}
+		r.Log.Info("nsm registry deployment updated")
+		return nil
 	}
 	r.Log.Info("nsm registry deployment already exists, skipping creation")
 	return nil
@@ -64,6 +73,7 @@ func (r *RegistryReconciler) DeploymentForRegistry(nsm *nsmv1alpha1.NSM) *appsv1
 			Selector: &metav1.LabelSelector{
 				MatchLabels: registryLabel,
 			},
+			Replicas: getReplicas(nsm),
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: registryLabel,
@@ -74,7 +84,7 @@ func (r *RegistryReconciler) DeploymentForRegistry(nsm *nsmv1alpha1.NSM) *appsv1
 						Name:            "nsm-registry",
 						Image:           nsm.Spec.Registry.Image,
 						ImagePullPolicy: nsm.Spec.NsmPullPolicy,
-						Env:             *getEnvVar(nsm),
+						Env:             getEnvVar(nsm),
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 5002,
 							HostPort:      5002}},
@@ -109,29 +119,36 @@ func (r *RegistryReconciler) DeploymentForRegistry(nsm *nsmv1alpha1.NSM) *appsv1
 	return deploy
 }
 
-func getEnvVar(nsm *nsmv1alpha1.NSM) *[]corev1.EnvVar {
-	if nsm.Spec.Registry.EnvVars != nil {
-		return &nsm.Spec.Registry.EnvVars
+func getReplicas(nsm *nsmv1alpha1.NSM) *int32 {
+	replicas := int32(1)
+	if nsm.Spec.Registry.Type == "k8s" && nsm.Spec.Registry.ReplicaCount > 0 {
+		return &nsm.Spec.Registry.ReplicaCount
 	}
-	prefix := "NSM_"
-	switch nsm.Spec.Registry.Type {
-	case "memory":
-		prefix = "REGISTRY_MEMORY_"
-	case "k8s":
-		// From version 1.7.0 the prefix of the environment variables changed to NSM, instead of REGISTRY_K8S
-		if nsm.Spec.Version < "v1.7.0" {
-			prefix = "REGISTRY_K8S_"
+	return &replicas
+}
+
+func getEnvVar(nsm *nsmv1alpha1.NSM) []corev1.EnvVar {
+	envVars := nsm.Spec.Registry.EnvVars
+	if envVars == nil {
+		prefix := "NSM_"
+		switch nsm.Spec.Registry.Type {
+		case "memory":
+			prefix = "REGISTRY_MEMORY_"
+		case "k8s":
+			// From version 1.7.0 the prefix of the environment variables changed to NSM, instead of REGISTRY_K8S
+			if nsm.Spec.Version < "v1.7.0" {
+				prefix = "REGISTRY_K8S_"
+			}
+		}
+		envVars = []corev1.EnvVar{{Name: prefix + "LISTEN_ON", Value: "tcp://:5002"},
+			{Name: prefix + "PROXY_REGISTRY_URL", Value: "nsmgr-proxy:5004"},
+			{Name: prefix + "LOG_LEVEL", Value: getNsmLogLevel(nsm)},
+			{Name: prefix + "NAMESPACE", ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.namespace",
+				},
+			}},
 		}
 	}
-
-	return &[]corev1.EnvVar{{Name: "SPIFFE_ENDPOINT_SOCKET", Value: "unix:///run/spire/sockets/agent.sock"},
-		{Name: prefix + "LISTEN_ON", Value: "tcp://:5002"},
-		{Name: prefix + "PROXY_REGISTRY_URL", Value: "nsmgr-proxy:5004"},
-		{Name: prefix + "LOG_LEVEL", Value: getNsmLogLevel(nsm)},
-		{Name: prefix + "NAMESPACE", ValueFrom: &corev1.EnvVarSource{
-			FieldRef: &corev1.ObjectFieldSelector{
-				FieldPath: "metadata.namespace",
-			},
-		}},
-	}
+	return insertSpireAgentSocketEnv(envVars, getSpireAgentSocket(nsm))
 }

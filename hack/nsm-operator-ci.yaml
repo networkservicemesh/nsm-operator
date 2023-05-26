@@ -98,7 +98,7 @@ spec:
             description: NSMSpec defines the desired state of NSM
             properties:
               exclPref:
-                description: exclude-prefixes-k8s
+                description: Exclude-prefixes-k8s
                 properties:
                   envVars:
                     description: EnvVars for ExclPrefImage configuration
@@ -216,7 +216,7 @@ spec:
                     type: string
                 type: object
               forwarders:
-                description: List of forwarders to be used with nsm
+                description: List of forwarders to be used with NSM
                 items:
                   properties:
                     envVars:
@@ -353,15 +353,13 @@ spec:
                   type: object
                 type: array
               nsmLogLevel:
-                description: Log level of the NSM components
+                description: Log level of the NSM components, defaults to "INFO"
                 type: string
               nsmPullPolicy:
-                description: PullPolicy describes a policy for if/when to pull a container
-                  image
+                description: Pull policy for NSM images, defaults to IfNotPresent
                 type: string
               nsmgr:
-                description: NSMGR image string (must be a complete image path with
-                  tag)
+                description: Network Service Manager
                 properties:
                   envVars:
                     description: EnvVars for Nsmgr configuration
@@ -479,7 +477,7 @@ spec:
                     type: string
                 type: object
               registry:
-                description: registry for nsm
+                description: Registry for NSM
                 properties:
                   envVars:
                     description: EnvVars for Registry configuration
@@ -594,6 +592,10 @@ spec:
                   image:
                     description: Registry Image with tag
                     type: string
+                  replicaCount:
+                    description: Number of replicas for the NSM Registry
+                    format: int32
+                    type: integer
                   type:
                     description: Registry type
                     enum:
@@ -603,11 +605,15 @@ spec:
                 required:
                 - type
                 type: object
+              spireAgentSocket:
+                description: SPIRE agent socket for NSM components, must be set according
+                  to the socket_path parameter of spire-agent
+                type: string
               version:
-                description: tag represents the desired Network Service Mesh version
+                description: Tag represents the desired Network Service Mesh version
                 type: string
               webhook:
-                description: webhook for nsm
+                description: Webhook for NSM
                 properties:
                   envVars:
                     description: EnvVars for Webhook configuration
@@ -726,7 +732,6 @@ spec:
                 type: object
             required:
             - forwarders
-            - nsmPullPolicy
             - registry
             - version
             type: object
@@ -934,7 +939,23 @@ rules:
       - "networkservices"
       - "networkserviceendpoints"
     verbs: ["*"]
-
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: nsm-admission-webhook-k8s-role
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+rules:
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources:
+      - "mutatingwebhookconfigurations"
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get"]
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -975,6 +996,19 @@ roleRef:
   name: nsm-registry-k8s-role
   apiGroup: rbac.authorization.k8s.io
 ---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: nsm-admission-webhook-k8s-role-binding
+subjects:
+  - kind: ServiceAccount
+    name: nsm-operator
+    namespace: nsm
+roleRef:
+  kind: ClusterRole
+  name: nsm-admission-webhook-k8s-role
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -1004,14 +1038,13 @@ spec:
     metadata:
       labels:
         control-plane: nsm-operator
-        spiffe.io/spiffe-id: "true"
     spec:
       containers:
       - args:
         - --enable-leader-election
         command:
         - /manager
-        image: quay.io/acmenezes/nsm-operator:v1.8.0
+        image: quay.io/acmenezes/nsm-operator:v1.9.0
         name: manager
         resources:
           limits:

@@ -36,7 +36,7 @@ IMAGE_TAG_BASE ?= quay.io/acmenezes/nsm-operator
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # Image URL to use all building/pushing image targets
-IMG ?= quay.io/acmenezes/nsm-operator:v1.8.0
+IMG ?= quay.io/acmenezes/nsm-operator:v1.9.0
 BUILDER ?= podman
 
 
@@ -250,10 +250,12 @@ ci-yaml:
 	cat config/rbac/role_scc.yaml >> hack/nsm-operator-ci.yaml
 	echo "" >> hack/nsm-operator-ci.yaml	
 	cat config/rbac/role-registry-k8s.yaml >> hack/nsm-operator-ci.yaml
-	echo "" >> hack/nsm-operator-ci.yaml	
+	cat config/rbac/role_admission-webhook-k8s.yaml >> hack/nsm-operator-ci.yaml
+	echo "---" >> hack/nsm-operator-ci.yaml	
 	cat config/rbac/role_binding.yaml >> hack/nsm-operator-ci.yaml
 	echo "" >> hack/nsm-operator-ci.yaml	
 	cat config/rbac/role_binding-registry-k8s.yaml >> hack/nsm-operator-ci.yaml
+	cat config/rbac/role_binding-admission-webhook-k8s.yaml >> hack/nsm-operator-ci.yaml
 	echo "---" >> hack/nsm-operator-ci.yaml
 	cat config/rbac/leader_election_role_binding.yaml >> hack/nsm-operator-ci.yaml
 	echo "---" >> hack/nsm-operator-ci.yaml

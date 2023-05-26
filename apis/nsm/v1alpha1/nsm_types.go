@@ -46,6 +46,8 @@ const (
 )
 
 type Registry struct {
+	// Number of replicas for the NSM Registry
+	ReplicaCount int32 `json:"replicaCount,omitempty"`
 	// Registry type
 	// +kubebuilder:validation:Enum=k8s;memory
 	Type string `json:"type"`
@@ -82,21 +84,24 @@ type ExclPref struct {
 
 // NSMSpec defines the desired state of NSM
 type NSMSpec struct {
-	// tag represents the desired Network Service Mesh version
-	Version       string            `json:"version"`
-	NsmPullPolicy corev1.PullPolicy `json:"nsmPullPolicy"`
-	// Log level of the NSM components
+	// Tag represents the desired Network Service Mesh version
+	Version string `json:"version"`
+	// Pull policy for NSM images, defaults to IfNotPresent
+	NsmPullPolicy corev1.PullPolicy `json:"nsmPullPolicy,omitempty"`
+	// Log level of the NSM components, defaults to "INFO"
 	NsmLogLevel string `json:"nsmLogLevel,omitempty"`
-	// webhook for nsm
+	// SPIRE agent socket for NSM components, must be set
+	// according to the socket_path parameter of spire-agent
+	SpireAgentSocket string `json:"spireAgentSocket,omitempty"`
+	// Webhook for NSM
 	Webhook Webhook `json:"webhook,omitempty"`
-	// registry for nsm
+	// Registry for NSM
 	Registry Registry `json:"registry"`
-	// NSMGR image string
-	// (must be a complete image path with tag)
+	// Network Service Manager
 	Nsmgr Nsmgr `json:"nsmgr,omitempty"`
-	// exclude-prefixes-k8s
+	// Exclude-prefixes-k8s
 	ExclPref ExclPref `json:"exclPref,omitempty"`
-	// List of forwarders to be used with nsm
+	// List of forwarders to be used with NSM
 	Forwarders []Forwarder `json:"forwarders"`
 }
 
